@@ -1,16 +1,22 @@
 package com.sdu.streaming.frog;
 
+import com.sdu.streaming.frog.dto.FrogJobConfiguration;
 import com.sdu.streaming.frog.dto.FrogJobTask;
 import com.sdu.streaming.frog.utils.Base64Utils;
 import com.sdu.streaming.frog.utils.JsonUtils;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.PipelineOptions;
+import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.TableEnvironment;
 
 import java.util.Collections;
+
+import static com.sdu.streaming.frog.dto.FrogJobConfiguration.DEFAULT_CK_CFG;
+import static org.apache.flink.streaming.api.CheckpointingMode.AT_LEAST_ONCE;
+import static org.apache.flink.streaming.api.CheckpointingMode.EXACTLY_ONCE;
 
 public class StreamingJobBootstrap {
 
@@ -34,7 +40,7 @@ public class StreamingJobBootstrap {
             task.getCfg().setOptions(Collections.emptyMap());
         }
         if (task.getCfg().getCheckpointCfg() == null) {
-            // TODO: default checkpoint config
+            task.getCfg().setCheckpointCfg(DEFAULT_CK_CFG);
         }
         if (task.getName() == null || task.getName().isEmpty()) {
             task.setName(DEFAULT_JOB_NAME);
@@ -42,7 +48,14 @@ public class StreamingJobBootstrap {
     }
 
     private static void initializeCheckpointConfiguration(StreamExecutionEnvironment env, FrogJobTask task) {
-
+        CheckpointConfig ckg = env.getCheckpointConfig();
+        FrogJobConfiguration.FogJobCheckpointConfiguration cfg = task.getCfg().getCheckpointCfg();
+        ckg.setCheckpointingMode(cfg.isExactlyOnce() ? EXACTLY_ONCE : AT_LEAST_ONCE);
+        ckg.setCheckpointInterval(cfg.getCheckpointInterval());
+        ckg.setCheckpointTimeout(cfg.getCheckpointTimeout());
+        ckg.setTolerableCheckpointFailureNumber(cfg.getTolerableCheckpointFailureNumber());
+        ckg.enableApproximateLocalRecovery(cfg.isApproximateLocalRecovery());
+        ckg.enableUnalignedCheckpoints(cfg.isUnalignedCheckpointsEnabled());
     }
 
     private static TableEnvironment initializeTableEnvironment(FrogJobTask task) {
