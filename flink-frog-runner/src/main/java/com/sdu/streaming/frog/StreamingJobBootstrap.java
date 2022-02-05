@@ -58,7 +58,11 @@ public class StreamingJobBootstrap {
     }
 
     private static TableEnvironment initializeBatchTableEnvironment(FrogJobTask task) {
-        throw new UnsupportedOperationException("unsupported");
+        TableEnvironment tableEnv = TableEnvironment.create(
+                EnvironmentSettings.newInstance().inBatchMode().build());
+        initializeJobConfiguration(tableEnv, task);
+        // TODO: load hive catalog
+        return tableEnv;
     }
 
     private static void initializeJobConfiguration(TableEnvironment tableEnv, FrogJobTask task) {
