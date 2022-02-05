@@ -1,22 +1,15 @@
 package com.sdu.streaming.frog;
 
-import com.sdu.streaming.frog.dto.FrogJobConfiguration;
 import com.sdu.streaming.frog.dto.FrogJobTask;
 import com.sdu.streaming.frog.utils.Base64Utils;
 import com.sdu.streaming.frog.utils.JsonUtils;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.PipelineOptions;
-import org.apache.flink.streaming.api.environment.CheckpointConfig;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.TableEnvironment;
 
-import java.util.Collections;
-
-import static com.sdu.streaming.frog.dto.FrogJobConfiguration.DEFAULT_CK_CFG;
-import static org.apache.flink.streaming.api.CheckpointingMode.AT_LEAST_ONCE;
-import static org.apache.flink.streaming.api.CheckpointingMode.EXACTLY_ONCE;
+import static com.sdu.streaming.frog.dto.FrogJobConfiguration.getDefaultConfiguration;
 
 public class StreamingJobBootstrap {
 
@@ -37,25 +30,11 @@ public class StreamingJobBootstrap {
             throw new IllegalArgumentException("undefine job execute configuration");
         }
         if (task.getCfg().getOptions() == null) {
-            task.getCfg().setOptions(Collections.emptyMap());
-        }
-        if (task.getCfg().getCheckpointCfg() == null) {
-            task.getCfg().setCheckpointCfg(DEFAULT_CK_CFG);
+            task.getCfg().setOptions(getDefaultConfiguration());
         }
         if (task.getName() == null || task.getName().isEmpty()) {
             task.setName(DEFAULT_JOB_NAME);
         }
-    }
-
-    private static void initializeCheckpointConfiguration(StreamExecutionEnvironment env, FrogJobTask task) {
-        CheckpointConfig ckg = env.getCheckpointConfig();
-        FrogJobConfiguration.FogJobCheckpointConfiguration cfg = task.getCfg().getCheckpointCfg();
-        ckg.setCheckpointingMode(cfg.isExactlyOnce() ? EXACTLY_ONCE : AT_LEAST_ONCE);
-        ckg.setCheckpointInterval(cfg.getCheckpointInterval());
-        ckg.setCheckpointTimeout(cfg.getCheckpointTimeout());
-        ckg.setTolerableCheckpointFailureNumber(cfg.getTolerableCheckpointFailureNumber());
-        ckg.enableApproximateLocalRecovery(cfg.isApproximateLocalRecovery());
-        ckg.enableUnalignedCheckpoints(cfg.isUnalignedCheckpointsEnabled());
     }
 
     private static TableEnvironment initializeTableEnvironment(FrogJobTask task) {
@@ -121,18 +100,15 @@ public class StreamingJobBootstrap {
             ParameterTool parameterTool = ParameterTool.fromArgs(args);
             String taskJson = Base64Utils.decode(parameterTool.get(TASK_CONFIG_KEY));
             FrogJobTask task = JsonUtils.fromJson(taskJson, FrogJobTask.class);
-            StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
             // STEP1: 校验参数
             checkStreamingJobParameters(task);
-            // STEP2: 配置快照
-            initializeCheckpointConfiguration(env, task);
-            // STEP3: 环境配置
+            // STEP2: 环境配置
             TableEnvironment tableEnv = initializeTableEnvironment(task);
-            // STEP4: 注册数据源、自定义函数
+            // STEP3: 注册数据源、自定义函数
             initializeTaskMaterials(tableEnv, task);
-            // STEP5: 注册任务计算逻辑
+            // STEP4: 注册任务计算逻辑
             StatementSet statements = initializeTaskCalculateLogic(tableEnv, task);
-            // STEP6: 提交任务
+            // STEP5: 提交任务
             initializeJobNameAndExecute(tableEnv, statements, task);
         } catch (Exception e) {
             throw new RuntimeException("failed execute job", e);

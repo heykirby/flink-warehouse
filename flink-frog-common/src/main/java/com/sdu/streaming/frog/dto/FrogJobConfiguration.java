@@ -3,22 +3,11 @@ package com.sdu.streaming.frog.dto;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 
 @Data
 public class FrogJobConfiguration implements Serializable {
-
-    public static FogJobCheckpointConfiguration DEFAULT_CK_CFG;
-
-    static {
-        DEFAULT_CK_CFG = new FogJobCheckpointConfiguration();
-        DEFAULT_CK_CFG.setCheckpointTimeout(10 * 60 * 1000L);
-        DEFAULT_CK_CFG.setCheckpointInterval(15 * 60 * 1000L);
-        DEFAULT_CK_CFG.setCheckpointInterval(10);
-        DEFAULT_CK_CFG.setExactlyOnce(true);
-        DEFAULT_CK_CFG.setUnalignedCheckpointsEnabled(false);
-        DEFAULT_CK_CFG.setApproximateLocalRecovery(false);
-    }
 
     // 是否流模式
     private boolean streaming;
@@ -38,5 +27,15 @@ public class FrogJobConfiguration implements Serializable {
         private boolean approximateLocalRecovery;
         private boolean unalignedCheckpointsEnabled;
 
+    }
+
+    public static Map<String, Object> getDefaultConfiguration() {
+        Map<String, Object> defaultOptions = new HashMap<>();
+        // checkpoint configuration, @See ExecutionCheckpointingOptions
+        defaultOptions.put("execution.checkpointing.mode", "EXACTLY_ONCE");
+        defaultOptions.put("execution.checkpointing.timeout", 10 * 60 * 1000L);
+        defaultOptions.put("execution.checkpointing.interval", 15 * 60 * 1000L);
+        defaultOptions.put("execution.checkpointing.tolerable-failed-checkpoints", 10);
+        return defaultOptions;
     }
 }

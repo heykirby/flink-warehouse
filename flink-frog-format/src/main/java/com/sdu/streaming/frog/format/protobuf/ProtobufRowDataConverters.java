@@ -10,12 +10,8 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.utils.LogicalTypeUtils;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map;
-
-import static org.apache.commons.lang3.StringUtils.join;
-import static org.apache.commons.lang3.StringUtils.remove;
 
 @Internal
 public class ProtobufRowDataConverters implements Serializable {
@@ -78,7 +74,7 @@ public class ProtobufRowDataConverters implements Serializable {
             if (TypeUtils.isBasicType(arrayType.getElementType())) {
                 return columnValue;
             }
-            return null;
+            throw new UnsupportedOperationException("unsupported nested complex type");
         };
     }
 
