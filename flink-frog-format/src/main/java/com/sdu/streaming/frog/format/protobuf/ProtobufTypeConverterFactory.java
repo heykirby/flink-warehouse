@@ -12,7 +12,7 @@ public class ProtobufTypeConverterFactory {
 
     }
 
-    public static ProtobufConverterCodeGenerator getProtobufTypeConverterCodeGenerator(Descriptors.FieldDescriptor fd, LogicalType type, boolean ignoreDefaultValues) {
+    public static TypeConverterCodeGenerator getProtobufTypeConverterCodeGenerator(Descriptors.FieldDescriptor fd, LogicalType type, boolean ignoreDefaultValues) {
         switch (type.getTypeRoot()) {
             case INTEGER:
             case TINYINT:
@@ -22,24 +22,24 @@ public class ProtobufTypeConverterFactory {
             case BOOLEAN:
             case CHAR:
             case VARCHAR:
-                return new ProtobufBasicTypeConverterCodeGenerator(fd, type);
+                return new BasicTypeConverterCodeGenerator(fd, type);
 
             case ARRAY:
-                return new ProtobufArrayConverterCodeGenerator(fd, (ArrayType) type, ignoreDefaultValues);
+                return new ArrayTypeConverterCodeGenerator(fd, (ArrayType) type, ignoreDefaultValues);
 
             case MAP:
-                return new ProtobufMapConverterCodeGenerator(fd, (MapType) type, ignoreDefaultValues);
+                return new MapTypeConverterCodeGenerator(fd, (MapType) type, ignoreDefaultValues);
 
             case ROW:
-                return new ProtobufRowTypeConverterCodeGenerator(fd.getMessageType(), (RowType) type, ignoreDefaultValues);
+                return new ProtobufTypeTypeConverterCodeGenerator(fd.getMessageType(), (RowType) type, ignoreDefaultValues);
 
             default:
                 throw new UnsupportedOperationException("unsupported type converter, type: " + type.getTypeRoot());
         }
     }
 
-    public static ProtobufConverterCodeGenerator getRowTypeConverterCodeGenerator(Descriptors.Descriptor descriptor, RowType rowType, boolean ignoreDefaultValue) {
-        return new ProtobufRowTypeConverterCodeGenerator(descriptor, rowType, ignoreDefaultValue);
+    public static TypeConverterCodeGenerator getRowTypeConverterCodeGenerator(Descriptors.Descriptor descriptor, RowType rowType, boolean ignoreDefaultValue) {
+        return new ProtobufTypeTypeConverterCodeGenerator(descriptor, rowType, ignoreDefaultValue);
     }
 
 }

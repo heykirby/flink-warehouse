@@ -12,6 +12,7 @@
     <artifactId>flink-frog-format</artifactId>
 
     <properties>
+        <protobuf.version>3.7.0</protobuf.version>
         <freemarker.version>2.3.20</freemarker.version>
     </properties>
 
@@ -25,7 +26,7 @@
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-table-runtime_2.11</artifactId>
             <version>${flink.version}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -37,7 +38,7 @@
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-            <version>3.7.0</version>
+            <version>${protobuf.version}</version>
         </dependency>
 
     </dependencies>

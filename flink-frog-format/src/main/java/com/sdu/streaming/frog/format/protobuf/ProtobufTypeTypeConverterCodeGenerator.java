@@ -10,14 +10,14 @@ import static com.sdu.streaming.frog.format.VariableUtils.getSerialId;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getJavaFullName;
 
-public class ProtobufRowTypeConverterCodeGenerator implements ProtobufConverterCodeGenerator {
+public class ProtobufTypeTypeConverterCodeGenerator implements TypeConverterCodeGenerator {
 
     private final List<Descriptors.FieldDescriptor> fds;
     private final Descriptors.Descriptor descriptor;
     private final RowType rowType;
     private final boolean ignoreDefaultValues;
 
-    public ProtobufRowTypeConverterCodeGenerator(Descriptors.Descriptor descriptor, RowType rowType, boolean ignoreDefaultValues) {
+    public ProtobufTypeTypeConverterCodeGenerator(Descriptors.Descriptor descriptor, RowType rowType, boolean ignoreDefaultValues) {
         this.descriptor = descriptor;
         this.fds = descriptor.getFields();
         this.rowType = rowType;
@@ -46,7 +46,7 @@ public class ProtobufRowTypeConverterCodeGenerator implements ProtobufConverterC
             if (subFd == null) {
                 throw new RuntimeException("cant find field statement, name: " + fieldName);
             }
-            ProtobufConverterCodeGenerator codegen = getProtobufTypeConverterCodeGenerator(subFd, subType, ignoreDefaultValues);
+            TypeConverterCodeGenerator codegen = getProtobufTypeConverterCodeGenerator(subFd, subType, ignoreDefaultValues);
             // 字段结果变量
             String fieldResultVariable = String.format("fieldResult%s", getSerialId());
             sb.append("Object ").append(fieldResultVariable).append(" = null;");

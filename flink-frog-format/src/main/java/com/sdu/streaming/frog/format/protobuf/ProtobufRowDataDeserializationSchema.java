@@ -70,7 +70,7 @@ public class ProtobufRowDataDeserializationSchema implements DeserializationSche
         props.put(PROTOBUF_OUTPUT_MACRO, PROTOBUF_OUTPUT_VAR_NAME);
 
         Descriptors.Descriptor descriptor = getProtobufDescriptor(clazz);
-        ProtobufConverterCodeGenerator codeGenerator = getRowTypeConverterCodeGenerator(descriptor, rowType, ignoreDefaultValue);
+        TypeConverterCodeGenerator codeGenerator = getRowTypeConverterCodeGenerator(descriptor, rowType, ignoreDefaultValue);
         props.put(PROTOBUF_CONVERT_MACRO, codeGenerator.codegen(PROTOBUF_OUTPUT_VAR_NAME, PROTOBUF_INPUT_VAR_NAME));
 
         String codegen = FreeMarkerUtils.getTemplateCode(PROTOBUF_CODE_TEMPLATE_NAME, props);

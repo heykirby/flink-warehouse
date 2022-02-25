@@ -8,13 +8,13 @@ import static com.sdu.streaming.frog.format.VariableUtils.getSerialId;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getJavaType;
 
-public class ProtobufArrayConverterCodeGenerator implements ProtobufConverterCodeGenerator {
+public class ArrayTypeConverterCodeGenerator implements TypeConverterCodeGenerator {
 
     private final Descriptors.FieldDescriptor fd;
     private final LogicalType elementType;
     private final boolean ignoreDefaultValues;
 
-    public ProtobufArrayConverterCodeGenerator(Descriptors.FieldDescriptor fd, ArrayType type, boolean ignoreDefaultValues) {
+    public ArrayTypeConverterCodeGenerator(Descriptors.FieldDescriptor fd, ArrayType type, boolean ignoreDefaultValues) {
         this.fd = fd;
         this.elementType = type.getElementType();
         this.ignoreDefaultValues = ignoreDefaultValues;
@@ -42,7 +42,7 @@ public class ProtobufArrayConverterCodeGenerator implements ProtobufConverterCod
         sb.append("for (").append(getJavaType(fd)).append(" ").append(element).append(" : ").append(inputVariable).append(") { ");
         String elementResult = String.format("elementResult%d", getSerialId());
         sb.append("Object ").append(elementResult).append(" = null;");
-        ProtobufConverterCodeGenerator codeGenerator = getProtobufTypeConverterCodeGenerator(fd, elementType, ignoreDefaultValues);
+        TypeConverterCodeGenerator codeGenerator = getProtobufTypeConverterCodeGenerator(fd, elementType, ignoreDefaultValues);
         sb.append(codeGenerator.codegen(elementResult, element));
         sb.append(arrayResultVariable).append("[index++] = ").append(elementResult).append(";");
         sb.append("}");

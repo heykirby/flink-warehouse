@@ -3,12 +3,12 @@ package com.sdu.streaming.frog.format.protobuf;
 import com.google.protobuf.Descriptors;
 import org.apache.flink.table.types.logical.LogicalType;
 
-public class ProtobufBasicTypeConverterCodeGenerator implements ProtobufConverterCodeGenerator {
+public class BasicTypeConverterCodeGenerator implements TypeConverterCodeGenerator {
 
     private final Descriptors.FieldDescriptor fd;
     private final LogicalType type;
 
-    public ProtobufBasicTypeConverterCodeGenerator(Descriptors.FieldDescriptor fd, LogicalType type) {
+    public BasicTypeConverterCodeGenerator(Descriptors.FieldDescriptor fd, LogicalType type) {
         this.fd = fd;
         this.type = type;
     }

@@ -7,14 +7,14 @@ import org.apache.flink.table.types.logical.MapType;
 import static com.sdu.streaming.frog.format.VariableUtils.getSerialId;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
 
-public class ProtobufMapConverterCodeGenerator implements ProtobufConverterCodeGenerator {
+public class MapTypeConverterCodeGenerator implements TypeConverterCodeGenerator {
 
     private final Descriptors.FieldDescriptor fd;
     private final LogicalType keyType;
     private final LogicalType valueType;
     private final boolean ignoreDefaultValue;
 
-    public ProtobufMapConverterCodeGenerator(Descriptors.FieldDescriptor fd, MapType type, boolean ignoreDefaultValue) {
+    public MapTypeConverterCodeGenerator(Descriptors.FieldDescriptor fd, MapType type, boolean ignoreDefaultValue) {
         this.fd = fd;
         this.keyType = type.getKeyType();
         this.valueType = type.getValueType();
@@ -51,9 +51,9 @@ public class ProtobufMapConverterCodeGenerator implements ProtobufConverterCodeG
         String value = String.format("value%d", getSerialId());
         sb.append("Object ").append(key).append(" = null;");
         sb.append("Object ").append(value).append(" = null;");
-        ProtobufConverterCodeGenerator keyCodeGenerator = getProtobufTypeConverterCodeGenerator(keyFd, keyType, ignoreDefaultValue);
+        TypeConverterCodeGenerator keyCodeGenerator = getProtobufTypeConverterCodeGenerator(keyFd, keyType, ignoreDefaultValue);
         sb.append(keyCodeGenerator.codegen(key, String.format("%s.getKey()", entry)));
-        ProtobufConverterCodeGenerator valueCodeGenerator = getProtobufTypeConverterCodeGenerator(valueFd, valueType, ignoreDefaultValue);
+        TypeConverterCodeGenerator valueCodeGenerator = getProtobufTypeConverterCodeGenerator(valueFd, valueType, ignoreDefaultValue);
         sb.append(valueCodeGenerator.codegen(value, String.format("%s.getValue()", entry)));
         sb.append(mapResult).append(".put(").append(key).append(", ").append(value).append(");");
         sb.append("}");
