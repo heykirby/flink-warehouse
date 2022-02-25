@@ -2,6 +2,7 @@ package com.sdu.streaming.frog.utils;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -37,6 +38,10 @@ public class JsonUtils {
 
     public static <T> T fromJson(InputStream is, Class<T> clazz) throws IOException {
         return JSON_MAPPER.readValue(is, clazz);
+    }
+
+    public static <T> T fromJson(String json, TypeReference<T> type) throws IOException {
+        return JSON_MAPPER.readValue(json, type);
     }
 
 }

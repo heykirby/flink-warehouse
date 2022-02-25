@@ -1,5 +1,7 @@
 package com.sdu.streaming.frog.format.protobuf;
 
+import com.sdu.streaming.frog.format.FreeMarkerUtils;
+import com.sdu.streaming.frog.format.ReflectionUtils;
 import com.sdu.streaming.frog.format.RuntimeRowDataConverter;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
@@ -11,19 +13,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
+
+import static org.apache.flink.table.runtime.generated.CompileUtils.compile;
 
 @Internal
 public class ProtobufRowDataDeserializationSchema implements DeserializationSchema<RowData> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProtobufRowDataDeserializationSchema.class);
 
+    private static final String PROTOBUF_CODE_TEMPLATE_NAME = "protobufRowConverter.ftl";
+    private static final String PROTOBUF_CLASS_MACRO_VARIABLES = "protobufClass";
+    private static final String PROTOBUF_ROW_CONVERTER_CLASS = "com.sdu.streaming.frog.format.protobuf.ProtobufRuntimeRowConverter";
+
     private final RowType rowType;
     private final TypeInformation<RowData> resultTypeInfo;
     private final String clazz;
     private final boolean ignoreParserErrors;
     private final boolean ignoreDefaultValue;
-    private final Map<String, String> fieldMappings;
+    private final String fieldMapping;
 
 
     private transient RuntimeRowDataConverter runtimeRowDataConverter;
@@ -32,12 +41,12 @@ public class ProtobufRowDataDeserializationSchema implements DeserializationSche
             RowType rowType,
             TypeInformation<RowData> resultTypeInfo,
             String clazz,
-            Map<String, String> fieldMappings,
+            String fieldMapping,
             boolean ignoreParserErrors,
             boolean ignoreDefaultValue) {
         this.rowType = rowType;
         this.resultTypeInfo = resultTypeInfo;
-        this.fieldMappings = fieldMappings;
+        this.fieldMapping = fieldMapping;
         this.clazz = clazz;
         this.ignoreParserErrors = ignoreParserErrors;
         this.ignoreDefaultValue = ignoreDefaultValue;
@@ -45,9 +54,18 @@ public class ProtobufRowDataDeserializationSchema implements DeserializationSche
 
     @Override
     public void open(InitializationContext context) throws Exception {
+        // STEP1: 根据模板生成代码
+        Map<String, Object> props = new HashMap<>();
+        props.put(PROTOBUF_CLASS_MACRO_VARIABLES, clazz);
+        String code = FreeMarkerUtils.getTemplateCode(PROTOBUF_CODE_TEMPLATE_NAME, props);
+        LOG.info("codegen: \n {}", code);
+
+        // STEP2: 构建实例
         UserCodeClassLoader userCodeClassLoader = context.getUserCodeClassLoader();
-        // TODO: load and initialize
-        this.runtimeRowDataConverter = null;
+        Class<RuntimeRowDataConverter> rowDataConverterClazz = compile(userCodeClassLoader.asClassLoader(), PROTOBUF_ROW_CONVERTER_CLASS, code);
+        Class<?>[] parameterTypes = new Class<?>[] {RowType.class, String.class};
+        Object[] parameters = new Object[] {this.rowType, this.fieldMapping};
+        this.runtimeRowDataConverter = ReflectionUtils.newInstance(rowDataConverterClazz, parameterTypes, parameters);
     }
 
     @Override

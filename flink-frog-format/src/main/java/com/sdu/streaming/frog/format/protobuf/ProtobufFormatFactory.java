@@ -17,7 +17,6 @@ import org.apache.flink.table.factories.SerializationFormatFactory;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.RowType;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,9 +40,8 @@ public class ProtobufFormatFactory implements DeserializationFormatFactory, Seri
             public DeserializationSchema<RowData> createRuntimeDecoder(DynamicTableSource.Context context, DataType produceDataType) {
                 final RowType rowType = (RowType) produceDataType.getLogicalType();
                 final TypeInformation<RowData> rowDataTypeInfo = context.createTypeInformation(produceDataType);
-                // TODO: field mapping
                 return new ProtobufRowDataDeserializationSchema(rowType, rowDataTypeInfo, clazz,
-                        new HashMap<>(), ignoreParseError, ignoreDefaultValue);
+                        fieldMapping, ignoreParseError, ignoreDefaultValue);
             }
 
             @Override
