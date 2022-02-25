@@ -3,6 +3,8 @@ package com.sdu.streaming.frog.format.protobuf;
 import com.google.protobuf.Descriptors;
 import org.apache.flink.table.types.logical.LogicalType;
 
+import static java.lang.String.format;
+
 public class BasicTypeConverterCodeGenerator implements TypeConverterCodeGenerator {
 
     private final Descriptors.FieldDescriptor fd;
@@ -22,14 +24,14 @@ public class BasicTypeConverterCodeGenerator implements TypeConverterCodeGenerat
             case FLOAT:
             case DOUBLE:
             case BOOLEAN:
-                sb.append(resultVariable).append(" = ").append(inputCode).append(";");
+                sb.append(format("%s = %s;", resultVariable, inputCode));
                 break;
             case BYTE_STRING:
-                sb.append(resultVariable).append(" = ").append(inputCode).append("toByteArray();");
+                sb.append(format("%s = %s.toByteArray();", resultVariable, inputCode));
                 break;
             case STRING:
             case ENUM:
-                sb.append(resultVariable).append(" = ").append("StringData.fromString(").append(inputCode).append(".toString());");
+                sb.append(format("%s = StringData.fromString(%s.toString());", resultVariable, inputCode));
                 break;
 
         }

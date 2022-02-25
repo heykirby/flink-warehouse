@@ -6,6 +6,7 @@ import org.apache.flink.table.types.logical.MapType;
 
 import static com.sdu.streaming.frog.format.VariableUtils.getSerialId;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
+import static java.lang.String.format;
 
 public class MapTypeConverterCodeGenerator implements TypeConverterCodeGenerator {
 
@@ -37,27 +38,24 @@ public class MapTypeConverterCodeGenerator implements TypeConverterCodeGenerator
         Descriptors.FieldDescriptor keyFd = fd.getMessageType().findFieldByName("key");
         Descriptors.FieldDescriptor valueFd = fd.getMessageType().findFieldByName("value");
         StringBuilder sb = new StringBuilder();
-        String inputVariable = String.format("inputVariable%d", getSerialId());
-        String keyJavaType = ProtobufUtils.getJavaType(keyFd);
-        String valueJavaType = ProtobufUtils.getJavaType(valueFd);
-        sb.append("Map<").append(keyJavaType).append(", ").append(valueJavaType).append("> ").append(inputVariable)
-                .append(" = ").append(inputCode).append(";");
-        String mapResult = String.format("mapResult%d", getSerialId());
-        sb.append("Map<Object, Object> ").append(mapResult).append(" = new HashMap<>();");
-        String entry = String.format("entry%d", getSerialId());
-        sb.append("for(Map.Entry<").append(keyJavaType).append(", ").append(valueJavaType).append("> ").append(entry)
-                .append(" : ").append(inputVariable).append(".entrySet()) { ");
-        String key = String.format("key%d", getSerialId());
-        String value = String.format("value%d", getSerialId());
-        sb.append("Object ").append(key).append(" = null;");
-        sb.append("Object ").append(value).append(" = null;");
-        TypeConverterCodeGenerator keyCodeGenerator = getProtobufTypeConverterCodeGenerator(keyFd, keyType, ignoreDefaultValue);
-        sb.append(keyCodeGenerator.codegen(key, String.format("%s.getKey()", entry)));
-        TypeConverterCodeGenerator valueCodeGenerator = getProtobufTypeConverterCodeGenerator(valueFd, valueType, ignoreDefaultValue);
-        sb.append(valueCodeGenerator.codegen(value, String.format("%s.getValue()", entry)));
-        sb.append(mapResult).append(".put(").append(key).append(", ").append(value).append(");");
-        sb.append("}");
-        sb.append(resultVariable).append(" = new GenericMapData(").append(mapResult).append(");");
+        String input = format("input$%d", getSerialId());
+        String keyType = ProtobufUtils.getJavaType(keyFd);
+        String valueType = ProtobufUtils.getJavaType(valueFd);
+        sb.append(format("Map<%s, %s> %s = %s;", keyType, valueType, input, inputCode));
+        String ret = format("ret$%d", getSerialId());
+        sb.append(format("Map<Object, Object> %s = new HashMap<>();", ret));
+        String entry = format("entry$%d", getSerialId());
+        sb.append(format("for(Map.Entry<%s, %s> %s : %s.entrySet()) { ", keyType, valueType, entry, input));
+        String key = format("key$%d", getSerialId());
+        String value = format("value$%d", getSerialId());
+        sb.append(format("Object %s = null;", key));
+        sb.append(format("Object %s = null;", value));
+        TypeConverterCodeGenerator keyCodeGenerator = getProtobufTypeConverterCodeGenerator(keyFd, this.keyType, ignoreDefaultValue);
+        sb.append(keyCodeGenerator.codegen(key, format("%s.getKey()", entry)));
+        TypeConverterCodeGenerator valueCodeGenerator = getProtobufTypeConverterCodeGenerator(valueFd, this.valueType, ignoreDefaultValue);
+        sb.append(valueCodeGenerator.codegen(value, format("%s.getValue()", entry)));
+        sb.append(format("%s.put(%s, %s); }", ret, key, value));
+        sb.append(format("%s = new GenericMapData(%s);", resultVariable, ret));
         return sb.toString();
     }
 

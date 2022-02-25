@@ -7,16 +7,17 @@ import org.apache.flink.table.types.logical.LogicalType;
 import static com.sdu.streaming.frog.format.VariableUtils.getSerialId;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getJavaType;
+import static java.lang.String.format;
 
 public class ArrayTypeConverterCodeGenerator implements TypeConverterCodeGenerator {
 
     private final Descriptors.FieldDescriptor fd;
-    private final LogicalType elementType;
+    private final LogicalType type;
     private final boolean ignoreDefaultValues;
 
     public ArrayTypeConverterCodeGenerator(Descriptors.FieldDescriptor fd, ArrayType type, boolean ignoreDefaultValues) {
         this.fd = fd;
-        this.elementType = type.getElementType();
+        this.type = type.getElementType();
         this.ignoreDefaultValues = ignoreDefaultValues;
     }
 
@@ -32,21 +33,21 @@ public class ArrayTypeConverterCodeGenerator implements TypeConverterCodeGenerat
          *   }
          *   resultVariable = new GenericArrayData(result);
          * */
+        String elementType = getJavaType(fd);
         StringBuilder sb = new StringBuilder();
-        String inputVariable = String.format("input%d", getSerialId());
-        sb.append("List<").append(getJavaType(fd)).append("> ").append(inputVariable).append(" = ").append(inputCode).append(";");
-        String arrayResultVariable = String.format("arrayResultVariable%d", getSerialId());
-        sb.append("Object[] ").append(arrayResultVariable).append(" = ").append("new Object[").append(inputVariable).append(".size()];");
-        String element = String.format("element%d", getSerialId());
+        String input = format("input$%d", getSerialId());
+        sb.append(format("List<%s> %s = %s;", elementType, input, inputCode));
+        String res = format("res$%d", getSerialId());
+        sb.append(format("Object[] %s = new Object[%s.size()];", res, input));
+        String el = format("el$%d", getSerialId());
         sb.append("int index = 0;");
-        sb.append("for (").append(getJavaType(fd)).append(" ").append(element).append(" : ").append(inputVariable).append(") { ");
-        String elementResult = String.format("elementResult%d", getSerialId());
-        sb.append("Object ").append(elementResult).append(" = null;");
-        TypeConverterCodeGenerator codeGenerator = getProtobufTypeConverterCodeGenerator(fd, elementType, ignoreDefaultValues);
-        sb.append(codeGenerator.codegen(elementResult, element));
-        sb.append(arrayResultVariable).append("[index++] = ").append(elementResult).append(";");
-        sb.append("}");
-        sb.append(resultVariable).append(" = = new GenericArrayData(").append(arrayResultVariable).append(");");
+        sb.append(format("for (%s %s : %s) { ", elementType, el, input));
+        String ret = format("ret$%d", getSerialId());
+        sb.append(format("Object %s = null;", ret));
+        TypeConverterCodeGenerator codeGenerator = getProtobufTypeConverterCodeGenerator(fd, type, ignoreDefaultValues);
+        sb.append(codeGenerator.codegen(ret, el));
+        sb.append(format("%s[index++] = %s; }", res, ret));
+        sb.append(format("%s = new GenericArrayData(%s);", resultVariable, res));
         return sb.toString();
     }
 

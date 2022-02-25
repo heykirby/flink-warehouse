@@ -9,6 +9,7 @@ import java.util.List;
 import static com.sdu.streaming.frog.format.VariableUtils.getSerialId;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getJavaFullName;
+import static java.lang.String.format;
 
 public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator {
 
@@ -26,19 +27,13 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
 
     @Override
     public String codegen(String resultVariable, String inputCode) {
-        /*
-         * 代码:
-         *    GenericRowData rowData$id = new GenericRowData(size);
-         *    rowData$id.setField(index, object);
-         *    resultVariable = rowData$id;
-         * */
-        // STEP1: 声明结果变量
-        String rowDataVariable = String.format("rowData%d", getSerialId());
+
         StringBuilder sb = new StringBuilder();
         int index = 0, size = rowType.getFieldCount();
-        String inputVariable = String.format("input%d",getSerialId());
-        sb.append(getJavaFullName(descriptor)).append(" inputVariable").append(" = ").append(inputVariable).append(";");
-        sb.append("GenericRowData ").append(rowDataVariable).append(" = new GenericRowData(").append(size).append(");");
+        String input = format("input$%d",getSerialId());
+        String rowData = format("row$%d", getSerialId());
+        sb.append(format("%s %s = %s;", getJavaFullName(descriptor), input, inputCode));
+        sb.append(format("GenericRowData %s = new GenericRowData(%d);", rowData, size));
         for (final String fieldName : rowType.getFieldNames()) {
             // STEP2: 获取列字段值
             Descriptors.FieldDescriptor subFd = fds.stream().filter(fd -> fd.getName().equals(fieldName)).findFirst().orElse(null);
@@ -48,28 +43,28 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
             }
             TypeConverterCodeGenerator codegen = getProtobufTypeConverterCodeGenerator(subFd, subType, ignoreDefaultValues);
             // 字段结果变量
-            String fieldResultVariable = String.format("fieldResult%s", getSerialId());
-            sb.append("Object ").append(fieldResultVariable).append(" = null;");
-            // 字段原始值代码
+            String ret = format("ret$%s", getSerialId());
+            sb.append(format("Object %s = null;", ret));
+            // 字段值
             final String fieldCamelName = ProtobufUtils.getStrongCamelCaseJsonName(fieldName);
-            final String fieldInputCode = getPrototbufFieldCode(subFd, fieldCamelName, inputVariable);
-            sb.append(codegen.codegen(fieldResultVariable, fieldInputCode));
-            // 赋值
-            sb.append(rowDataVariable).append(".setField(").append(index).append(", ").append(fieldResultVariable).append(");");
-            //
+            final String fieldInputCode = getPrototbufFieldValueCode(subFd, fieldCamelName, input);
+            sb.append(codegen.codegen(ret, fieldInputCode));
+
+            sb.append(format("%s.setField(%d, %s);", rowData, index, ret));
             index += 1;
         }
-        sb.append(resultVariable).append(" = ").append(rowDataVariable).append(";");
+        sb.append(format("%s = %s;", resultVariable, rowData));
         return sb.toString();
     }
 
-    private static String getPrototbufFieldCode(Descriptors.FieldDescriptor fd, String fieldName, String protobufObjectVariable) {
+
+    private static String getPrototbufFieldValueCode(Descriptors.FieldDescriptor fd, String fieldName, String protobufObjectVariable) {
         if (fd.isRepeated()) {
-            return String.format("%s.get%sList()", protobufObjectVariable, fieldName);
+            return format("%s.get%sList()", protobufObjectVariable, fieldName);
         }
         if (fd.isMapField()) {
-            return String.format("%s.get%sMap()", protobufObjectVariable, fieldName);
+            return format("%s.get%sMap()", protobufObjectVariable, fieldName);
         }
-        return String.format("%s.get%s()", protobufObjectVariable, fieldName);
+        return format("%s.get%s()", protobufObjectVariable, fieldName);
     }
 }
