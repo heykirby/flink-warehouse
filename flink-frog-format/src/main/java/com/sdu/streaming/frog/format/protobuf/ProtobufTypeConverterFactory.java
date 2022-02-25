@@ -38,5 +38,8 @@ public class ProtobufTypeConverterFactory {
         }
     }
 
+    public static ProtobufConverterCodeGenerator getRowTypeConverterCodeGenerator(Descriptors.Descriptor descriptor, RowType rowType, boolean ignoreDefaultValue) {
+        return new ProtobufRowTypeConverterCodeGenerator(descriptor, rowType, ignoreDefaultValue);
+    }
 
 }

@@ -10,6 +10,15 @@ public class ProtobufUtils {
 
     }
 
+    public static Descriptors.Descriptor getProtobufDescriptor(String className) {
+        try {
+            Class<?> clazz = Class.forName(className);
+            return (Descriptors.Descriptor) clazz.getMethod("getDescriptor").invoke(null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static String fieldNameToJsonName(String name) {
         final int length = name.length();
         StringBuilder result = new StringBuilder(length);

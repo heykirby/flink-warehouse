@@ -1,5 +1,6 @@
 package com.sdu.streaming.frog.format.protobuf;
 
+import com.google.protobuf.Descriptors;
 import com.sdu.streaming.frog.format.FreeMarkerUtils;
 import com.sdu.streaming.frog.format.ReflectionUtils;
 import com.sdu.streaming.frog.format.RuntimeRowDataConverter;
@@ -16,6 +17,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getRowTypeConverterCodeGenerator;
+import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getProtobufDescriptor;
 import static org.apache.flink.table.runtime.generated.CompileUtils.compile;
 
 @Internal
@@ -23,9 +26,15 @@ public class ProtobufRowDataDeserializationSchema implements DeserializationSche
 
     private static final Logger LOG = LoggerFactory.getLogger(ProtobufRowDataDeserializationSchema.class);
 
-    private static final String PROTOBUF_CODE_TEMPLATE_NAME = "protobufRowConverter.ftl";
-    private static final String PROTOBUF_CLASS_MACRO_VARIABLES = "protobufClass";
-    private static final String PROTOBUF_ROW_CONVERTER_CLASS = "com.sdu.streaming.frog.format.protobuf.ProtobufRuntimeRowConverter";
+    private static final String PROTOBUF_CODE_TEMPLATE_NAME = "ProtobufRuntimeRowDataConverter.ftl";
+    private static final String PROTOBUF_CLASS_MACRO = "protobuf_class";
+    private static final String PROTOBUF_INPUT_MACRO = "input_variable";
+    private static final String PROTOBUF_INPUT_VAR_NAME = "message";
+    private static final String PROTOBUF_OUTPUT_MACRO = "result_variable";
+    private static final String PROTOBUF_OUTPUT_VAR_NAME = "row";
+    private static final String PROTOBUF_CONVERT_MACRO = "converter_code";
+
+    private static final String PROTOBUF_ROW_CONVERTER_CLASS = "com.sdu.streaming.frog.format.protobuf.ProtobufRuntimeRowDataConverter";
 
     private final RowType rowType;
     private final TypeInformation<RowData> resultTypeInfo;
@@ -54,18 +63,23 @@ public class ProtobufRowDataDeserializationSchema implements DeserializationSche
 
     @Override
     public void open(InitializationContext context) throws Exception {
-        // STEP1: 根据模板生成代码
+        // STEP1: 生成模板代码
         Map<String, Object> props = new HashMap<>();
-        props.put(PROTOBUF_CLASS_MACRO_VARIABLES, clazz);
-        String code = FreeMarkerUtils.getTemplateCode(PROTOBUF_CODE_TEMPLATE_NAME, props);
-        LOG.info("codegen: \n {}", code);
+        props.put(PROTOBUF_CLASS_MACRO, clazz);
+        props.put(PROTOBUF_INPUT_MACRO, PROTOBUF_INPUT_VAR_NAME);
+        props.put(PROTOBUF_OUTPUT_MACRO, PROTOBUF_OUTPUT_VAR_NAME);
+
+        Descriptors.Descriptor descriptor = getProtobufDescriptor(clazz);
+        ProtobufConverterCodeGenerator codeGenerator = getRowTypeConverterCodeGenerator(descriptor, rowType, ignoreDefaultValue);
+        props.put(PROTOBUF_CONVERT_MACRO, codeGenerator.codegen(PROTOBUF_OUTPUT_VAR_NAME, PROTOBUF_INPUT_VAR_NAME));
+
+        String codegen = FreeMarkerUtils.getTemplateCode(PROTOBUF_CODE_TEMPLATE_NAME, props);
+        LOG.info("codegen: \n {}", codegen);
 
         // STEP2: 构建实例
         UserCodeClassLoader userCodeClassLoader = context.getUserCodeClassLoader();
-        Class<RuntimeRowDataConverter> rowDataConverterClazz = compile(userCodeClassLoader.asClassLoader(), PROTOBUF_ROW_CONVERTER_CLASS, code);
-        Class<?>[] parameterTypes = new Class<?>[] {RowType.class, String.class};
-        Object[] parameters = new Object[] {this.rowType, this.fieldMapping};
-        this.runtimeRowDataConverter = ReflectionUtils.newInstance(rowDataConverterClazz, parameterTypes, parameters);
+        Class<RuntimeRowDataConverter> rowDataConverterClazz = compile(userCodeClassLoader.asClassLoader(), PROTOBUF_ROW_CONVERTER_CLASS, codegen);
+        this.runtimeRowDataConverter = ReflectionUtils.newInstance(rowDataConverterClazz);
     }
 
     @Override
