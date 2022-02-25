@@ -45,10 +45,4 @@ public class FreeMarkerUtils {
         }
     }
 
-//    public static void main(String[] args) {
-//        Map<String, Object> props = new HashMap<>();
-//        props.put("protobufClass", "com.sdu.Frog");
-//        System.out.println(getTemplateCode("protobufRowConverter.ftl", props));
-//    }
-
 }
