@@ -71,7 +71,7 @@ public class ProtobufRowDataConverters implements Serializable {
             if (!(columnValue instanceof List)) {
                 throw new RuntimeException("Illegal column type.");
             }
-            if (TypeUtils.isBasicType(arrayType.getElementType())) {
+            if (RowDataTypeUtils.isBasicType(arrayType.getElementType())) {
                 return columnValue;
             }
             throw new UnsupportedOperationException("unsupported nested complex type");

@@ -2,9 +2,9 @@ package com.sdu.streaming.frog.format.protobuf;
 
 import org.apache.flink.table.types.logical.LogicalType;
 
-public class TypeUtils {
+public class RowDataTypeUtils {
 
-    private TypeUtils() {
+    private RowDataTypeUtils() {
 
     }
 
