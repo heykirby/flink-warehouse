@@ -1,6 +1,10 @@
 package com.sdu.streaming.frog.format.protobuf;
 
+import com.google.protobuf.Descriptors;
+
 public class ProtobufUtils {
+
+    public static final String OUTER_CLASS = "OuterClass";
 
     private ProtobufUtils() {
 
@@ -38,4 +42,59 @@ public class ProtobufUtils {
         }
     }
 
+    public static String getJavaFullName(Descriptors.Descriptor descriptor) {
+        String javaPackageName = descriptor.getFile().getOptions().getJavaPackage();
+        if (descriptor.getFile().getOptions().getJavaMultipleFiles()) {
+            //multiple_files=true
+            if (null != descriptor.getContainingType()) {
+                //nested type
+                String parentJavaFullName = getJavaFullName(descriptor.getContainingType());
+                return parentJavaFullName + "." + descriptor.getName();
+            } else {
+                //top level message
+                return javaPackageName + "." + descriptor.getName();
+            }
+        } else {
+            //multiple_files=false
+            if (null != descriptor.getContainingType()) {
+                //nested type
+                String parentJavaFullName = getJavaFullName(descriptor.getContainingType());
+                return parentJavaFullName + "." + descriptor.getName();
+            } else {
+                //top level message
+                if (!descriptor.getFile().getOptions().hasJavaOuterClassname()) {
+                    //user do not define outer class name in proto file
+                    return javaPackageName + "." + descriptor.getName() + OUTER_CLASS + "." + descriptor.getName();
+                } else {
+                    String outerName = descriptor.getFile().getOptions().getJavaOuterClassname();
+                    //user define outer class name in proto file
+                    return javaPackageName + "." + outerName + "." + descriptor.getName();
+                }
+            }
+        }
+    }
+
+    public static String getJavaType(Descriptors.FieldDescriptor fd) {
+        switch (fd.getJavaType()) {
+            case MESSAGE:
+                return getJavaFullName(fd.getMessageType());
+            case INT:
+                return "Integer";
+            case LONG:
+                return "Long";
+            case STRING:
+            case ENUM:
+                return "Object";
+            case FLOAT:
+                return "Float";
+            case DOUBLE:
+                return "Double";
+            case BYTE_STRING:
+                return "byte[]";
+            case BOOLEAN:
+                return "Boolean";
+            default:
+                throw new UnsupportedOperationException("unsupported field type: " + fd.getJavaType());
+        }
+    }
 }
