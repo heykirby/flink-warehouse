@@ -9,8 +9,6 @@ import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.TableEnvironment;
 
-import static com.sdu.streaming.frog.dto.FrogJobConfiguration.getDefaultConfiguration;
-
 public class StreamingJobBootstrap {
 
     private static final String TASK_CONFIG_KEY = "taskConfig";
@@ -26,58 +24,27 @@ public class StreamingJobBootstrap {
         if (task.getCalculates() == null || task.getCalculates().isEmpty()) {
             throw new IllegalArgumentException("undefine job execute logic");
         }
-        if (task.getCfg() == null) {
-            throw new IllegalArgumentException("undefine job execute configuration");
-        }
-        if (task.getCfg().getOptions() == null) {
-            task.getCfg().setOptions(getDefaultConfiguration());
-        }
         if (task.getName() == null || task.getName().isEmpty()) {
             task.setName(DEFAULT_JOB_NAME);
         }
     }
 
     private static TableEnvironment initializeTableEnvironment(FrogJobTask task) {
-        return task.getCfg().isStreaming() ? initializeStreamTableEnvironment(task)
-                                           : initializeBatchTableEnvironment(task);
+        return task.isStreaming() ? initializeStreamTableEnvironment(task)
+                                  : initializeBatchTableEnvironment(task);
     }
 
     private static TableEnvironment initializeStreamTableEnvironment(FrogJobTask task) {
-        TableEnvironment tableEnv = TableEnvironment.create(
+        return TableEnvironment.create(
                 EnvironmentSettings.newInstance().inStreamingMode().build());
-        initializeJobConfiguration(tableEnv, task);
-        return tableEnv;
     }
 
     private static TableEnvironment initializeBatchTableEnvironment(FrogJobTask task) {
         TableEnvironment tableEnv = TableEnvironment.create(
                 EnvironmentSettings.newInstance().inBatchMode().build());
-        initializeJobConfiguration(tableEnv, task);
         // TODO: load hive catalog
+        //
         return tableEnv;
-    }
-
-    private static void initializeJobConfiguration(TableEnvironment tableEnv, FrogJobTask task) {
-        if (task.getCfg().getOptions() == null) {
-            return;
-        }
-        task.getCfg().getOptions().forEach((key, value) -> {
-            if (value instanceof Integer) {
-                tableEnv.getConfig().getConfiguration().setInteger(key, (Integer) value);
-            } else if (value instanceof Double) {
-                tableEnv.getConfig().getConfiguration().setDouble(key, (Double) value);
-            } else if (value instanceof Long) {
-                tableEnv.getConfig().getConfiguration().setLong(key, (Long) value);
-            } else if (value instanceof Float) {
-                tableEnv.getConfig().getConfiguration().setFloat(key, (Float) value);
-            } else if (value instanceof String) {
-                tableEnv.getConfig().getConfiguration().setString(key, (String) value);
-            } else if (value instanceof Boolean) {
-                tableEnv.getConfig().getConfiguration().setBoolean(key, (Boolean) value);
-            } else {
-                throw new IllegalArgumentException("unsupported configuration value type : " + value.getClass().getName());
-            }
-        });
     }
 
     private static void initializeTaskMaterials(TableEnvironment tableEnv, FrogJobTask task) {

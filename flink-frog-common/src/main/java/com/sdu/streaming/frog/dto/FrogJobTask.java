@@ -9,8 +9,8 @@ import java.util.List;
 public class FrogJobTask implements Serializable {
     // 任务名
     private String name;
-    // 配置
-    private FrogJobConfiguration cfg;
+    // 是否流模式
+    private boolean streaming;
     // 物料(表)
     private List<String> materials;
     // 计算
