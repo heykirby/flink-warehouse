@@ -31,7 +31,7 @@ public class ProtobufTypeConverterFactory {
                 return new MapTypeConverterCodeGenerator(fd, (MapType) type, ignoreDefaultValues);
 
             case ROW:
-                return new ProtobufTypeTypeConverterCodeGenerator(fd.getMessageType(), (RowType) type, ignoreDefaultValues);
+                return new RowTypeConverterCodeGenerator(fd.getMessageType(), (RowType) type, ignoreDefaultValues);
 
             default:
                 throw new UnsupportedOperationException("unsupported type converter, type: " + type.getTypeRoot());
@@ -39,7 +39,7 @@ public class ProtobufTypeConverterFactory {
     }
 
     public static TypeConverterCodeGenerator getRowTypeConverterCodeGenerator(Descriptors.Descriptor descriptor, RowType rowType, boolean ignoreDefaultValue) {
-        return new ProtobufTypeTypeConverterCodeGenerator(descriptor, rowType, ignoreDefaultValue);
+        return new RowTypeConverterCodeGenerator(descriptor, rowType, ignoreDefaultValue);
     }
 
 }

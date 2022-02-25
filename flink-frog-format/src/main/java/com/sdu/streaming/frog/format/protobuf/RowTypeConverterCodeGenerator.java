@@ -10,14 +10,14 @@ import static com.sdu.streaming.frog.format.VariableUtils.getSerialId;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getJavaFullName;
 
-public class ProtobufTypeTypeConverterCodeGenerator implements TypeConverterCodeGenerator {
+public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator {
 
     private final List<Descriptors.FieldDescriptor> fds;
     private final Descriptors.Descriptor descriptor;
     private final RowType rowType;
     private final boolean ignoreDefaultValues;
 
-    public ProtobufTypeTypeConverterCodeGenerator(Descriptors.Descriptor descriptor, RowType rowType, boolean ignoreDefaultValues) {
+    public RowTypeConverterCodeGenerator(Descriptors.Descriptor descriptor, RowType rowType, boolean ignoreDefaultValues) {
         this.descriptor = descriptor;
         this.fds = descriptor.getFields();
         this.rowType = rowType;
