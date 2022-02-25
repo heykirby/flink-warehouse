@@ -1,4 +1,4 @@
-package com.sdu.streaming.frog.format.protobuf;
+package com.sdu.streaming.frog.format;
 
 import org.apache.flink.table.types.logical.LogicalType;
 
@@ -24,4 +24,5 @@ public class RowDataTypeUtils {
                 return false;
         }
     }
+
 }
