@@ -5,6 +5,7 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.sdu.streaming.frog.format.VariableUtils.getSerialId;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
@@ -17,10 +18,14 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
     private final Descriptors.Descriptor descriptor;
     private final RowType rowType;
     private final boolean ignoreDefaultValues;
+    // NOTE:
+    // Row<name type, Row<name, type>>: 嵌套类型Row, fieldMapping取相对路径
+    private final Map<String, String[]> fieldMappings;
 
-    public RowTypeConverterCodeGenerator(Descriptors.Descriptor descriptor, RowType rowType, boolean ignoreDefaultValues) {
+    public RowTypeConverterCodeGenerator(Descriptors.Descriptor descriptor, RowType rowType, Map<String, String[]> fieldMappings, boolean ignoreDefaultValues) {
         this.descriptor = descriptor;
         this.fds = descriptor.getFields();
+        this.fieldMappings = fieldMappings;
         this.rowType = rowType;
         this.ignoreDefaultValues = ignoreDefaultValues;
     }
@@ -36,12 +41,10 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
         sb.append(format("GenericRowData %s = new GenericRowData(%d);", rowData, size));
         for (final String fieldName : rowType.getFieldNames()) {
             // STEP2: 获取列字段值
-            Descriptors.FieldDescriptor subFd = fds.stream().filter(fd -> fd.getName().equals(fieldName)).findFirst().orElse(null);
+//            Descriptors.FieldDescriptor subFd = fds.stream().filter(fd -> fd.getName().equals(fieldName)).findFirst().orElse(null);
+            Descriptors.FieldDescriptor subFd = getFieldDescriptor(fieldName);
             LogicalType subType = rowType.getTypeAt(rowType.getFieldIndex(fieldName));
-            if (subFd == null) {
-                throw new RuntimeException("cant find field statement, name: " + fieldName);
-            }
-            TypeConverterCodeGenerator codegen = getProtobufTypeConverterCodeGenerator(subFd, subType, ignoreDefaultValues);
+            TypeConverterCodeGenerator codegen = getProtobufTypeConverterCodeGenerator(fieldMappings, subFd, subType, ignoreDefaultValues);
             // 字段结果变量
             String ret = format("ret$%s", getSerialId());
             sb.append(format("Object %s = null;", ret));
@@ -57,6 +60,37 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
         return sb.toString();
     }
 
+    private Descriptors.FieldDescriptor getFieldDescriptor(String fieldName) {
+        String[] fields = fieldMappings.get(fieldName);
+        Descriptors.FieldDescriptor ret = null;
+        List<Descriptors.FieldDescriptor> fds = this.fds;
+        for(int i = 0; i < fields.length; ++i) {
+            String field = fields[i];
+            ret = fds.stream().filter(fd -> fd.getName().equals(field)).findFirst().orElse(null);
+            if (ret == null) {
+                throw new RuntimeException("cant find field descriptor for path: " + join(fields, i));
+            }
+            if (i != field.length() - 1) {
+                fds = ret.getMessageType().getFields();
+                ret = null;
+            }
+        }
+        if (ret == null) {
+            throw new RuntimeException("cant find field descriptor for path: " + join(fields, fields.length - 1));
+        }
+        return ret;
+    }
+
+    private static String join(String[] fields, int offset) {
+        StringBuilder sb = new StringBuilder("$");
+        for (int i = 0; i <= offset; ++i) {
+            if (i != 0) {
+                sb.append(".");
+            }
+            sb.append(fields[i]);
+        }
+        return sb.toString();
+    }
 
     private static String getPrototbufFieldValueCode(Descriptors.FieldDescriptor fd, String fieldName, String protobufObjectVariable) {
         if (fd.isRepeated()) {

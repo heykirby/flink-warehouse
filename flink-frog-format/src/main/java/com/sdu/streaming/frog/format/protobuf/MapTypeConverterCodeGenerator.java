@@ -4,6 +4,8 @@ import com.google.protobuf.Descriptors;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.MapType;
 
+import java.util.Map;
+
 import static com.sdu.streaming.frog.format.VariableUtils.getSerialId;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
 import static java.lang.String.format;
@@ -13,12 +15,14 @@ public class MapTypeConverterCodeGenerator implements TypeConverterCodeGenerator
     private final Descriptors.FieldDescriptor fd;
     private final LogicalType keyType;
     private final LogicalType valueType;
+    private final Map<String, String[]> fieldMappings;
     private final boolean ignoreDefaultValue;
 
-    public MapTypeConverterCodeGenerator(Descriptors.FieldDescriptor fd, MapType type, boolean ignoreDefaultValue) {
+    public MapTypeConverterCodeGenerator(Descriptors.FieldDescriptor fd, MapType type, Map<String, String[]> fieldMappings, boolean ignoreDefaultValue) {
         this.fd = fd;
         this.keyType = type.getKeyType();
         this.valueType = type.getValueType();
+        this.fieldMappings = fieldMappings;
         this.ignoreDefaultValue = ignoreDefaultValue;
     }
 
@@ -50,9 +54,9 @@ public class MapTypeConverterCodeGenerator implements TypeConverterCodeGenerator
         String value = format("value$%d", getSerialId());
         sb.append(format("Object %s = null;", key));
         sb.append(format("Object %s = null;", value));
-        TypeConverterCodeGenerator keyCodeGenerator = getProtobufTypeConverterCodeGenerator(keyFd, this.keyType, ignoreDefaultValue);
+        TypeConverterCodeGenerator keyCodeGenerator = getProtobufTypeConverterCodeGenerator(fieldMappings, keyFd, this.keyType, ignoreDefaultValue);
         sb.append(keyCodeGenerator.codegen(key, format("%s.getKey()", entry)));
-        TypeConverterCodeGenerator valueCodeGenerator = getProtobufTypeConverterCodeGenerator(valueFd, this.valueType, ignoreDefaultValue);
+        TypeConverterCodeGenerator valueCodeGenerator = getProtobufTypeConverterCodeGenerator(fieldMappings, valueFd, this.valueType, ignoreDefaultValue);
         sb.append(valueCodeGenerator.codegen(value, format("%s.getValue()", entry)));
         sb.append(format("%s.put(%s, %s); }", ret, key, value));
         sb.append(format("%s = new GenericMapData(%s);", resultVariable, ret));

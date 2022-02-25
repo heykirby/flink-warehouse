@@ -4,6 +4,8 @@ import com.google.protobuf.Descriptors;
 import org.apache.flink.table.types.logical.ArrayType;
 import org.apache.flink.table.types.logical.LogicalType;
 
+import java.util.Map;
+
 import static com.sdu.streaming.frog.format.VariableUtils.getSerialId;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getJavaType;
@@ -13,11 +15,13 @@ public class ArrayTypeConverterCodeGenerator implements TypeConverterCodeGenerat
 
     private final Descriptors.FieldDescriptor fd;
     private final LogicalType type;
+    private final Map<String, String[]> fieldMappings;
     private final boolean ignoreDefaultValues;
 
-    public ArrayTypeConverterCodeGenerator(Descriptors.FieldDescriptor fd, ArrayType type, boolean ignoreDefaultValues) {
+    public ArrayTypeConverterCodeGenerator(Descriptors.FieldDescriptor fd, ArrayType type, Map<String, String[]> fieldMappings, boolean ignoreDefaultValues) {
         this.fd = fd;
         this.type = type.getElementType();
+        this.fieldMappings = fieldMappings;
         this.ignoreDefaultValues = ignoreDefaultValues;
     }
 
@@ -44,7 +48,7 @@ public class ArrayTypeConverterCodeGenerator implements TypeConverterCodeGenerat
         sb.append(format("for (%s %s : %s) { ", elementType, el, input));
         String ret = format("ret$%d", getSerialId());
         sb.append(format("Object %s = null;", ret));
-        TypeConverterCodeGenerator codeGenerator = getProtobufTypeConverterCodeGenerator(fd, type, ignoreDefaultValues);
+        TypeConverterCodeGenerator codeGenerator = getProtobufTypeConverterCodeGenerator(fieldMappings, fd, type, ignoreDefaultValues);
         sb.append(codeGenerator.codegen(ret, el));
         sb.append(format("%s[index++] = %s; }", res, ret));
         sb.append(format("%s = new GenericArrayData(%s);", resultVariable, res));

@@ -6,13 +6,15 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.MapType;
 import org.apache.flink.table.types.logical.RowType;
 
+import java.util.Map;
+
 public class ProtobufTypeConverterFactory {
 
     private ProtobufTypeConverterFactory() {
 
     }
 
-    public static TypeConverterCodeGenerator getProtobufTypeConverterCodeGenerator(Descriptors.FieldDescriptor fd, LogicalType type, boolean ignoreDefaultValues) {
+    public static TypeConverterCodeGenerator getProtobufTypeConverterCodeGenerator(Map<String, String[]> fieldMappings, Descriptors.FieldDescriptor fd, LogicalType type, boolean ignoreDefaultValues) {
         switch (type.getTypeRoot()) {
             case INTEGER:
             case TINYINT:
@@ -31,15 +33,15 @@ public class ProtobufTypeConverterFactory {
                 return new MapTypeConverterCodeGenerator(fd, (MapType) type, ignoreDefaultValues);
 
             case ROW:
-                return new RowTypeConverterCodeGenerator(fd.getMessageType(), (RowType) type, ignoreDefaultValues);
+                return new RowTypeConverterCodeGenerator(fd.getMessageType(), (RowType) type, fieldMappings, ignoreDefaultValues);
 
             default:
                 throw new UnsupportedOperationException("unsupported type converter, type: " + type.getTypeRoot());
         }
     }
 
-    public static TypeConverterCodeGenerator getRowTypeConverterCodeGenerator(Descriptors.Descriptor descriptor, RowType rowType, boolean ignoreDefaultValue) {
-        return new RowTypeConverterCodeGenerator(descriptor, rowType, ignoreDefaultValue);
+    public static TypeConverterCodeGenerator getRowTypeConverterCodeGenerator(Descriptors.Descriptor descriptor, RowType rowType, Map<String, String[]> fieldMappings, boolean ignoreDefaultValue) {
+        return new RowTypeConverterCodeGenerator(descriptor, rowType, fieldMappings, ignoreDefaultValue);
     }
 
 }
