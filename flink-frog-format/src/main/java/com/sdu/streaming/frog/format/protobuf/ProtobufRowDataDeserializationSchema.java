@@ -63,20 +63,22 @@ public class ProtobufRowDataDeserializationSchema implements DeserializationSche
 
     @Override
     public void open(InitializationContext context) throws Exception {
-        // STEP1: 生成模板代码
+        // STEP1: 数据读取映射
+        Map<String, String[]> fieldMappings = standardFieldMappings(fieldMapping, rowType);
+        // STEP2: 生成模板代码
         Map<String, Object> props = new HashMap<>();
         props.put(PROTOBUF_CLASS_MACRO, clazz);
         props.put(PROTOBUF_INPUT_MACRO, PROTOBUF_INPUT_VAR_NAME);
         props.put(PROTOBUF_OUTPUT_MACRO, PROTOBUF_OUTPUT_VAR_NAME);
 
         Descriptors.Descriptor descriptor = getProtobufDescriptor(clazz);
-        TypeConverterCodeGenerator codeGenerator = getRowTypeConverterCodeGenerator(descriptor, rowType, ignoreDefaultValue);
+        TypeConverterCodeGenerator codeGenerator = getRowTypeConverterCodeGenerator(descriptor, rowType, fieldMappings, ignoreDefaultValue);
         props.put(PROTOBUF_CONVERT_MACRO, codeGenerator.codegen(PROTOBUF_OUTPUT_VAR_NAME, PROTOBUF_INPUT_VAR_NAME));
 
         String codegen = FreeMarkerUtils.getTemplateCode(PROTOBUF_CODE_TEMPLATE_NAME, props);
         LOG.info("codegen: \n {}", codegen);
 
-        // STEP2: 构建实例
+        // STEP3: 构建实例
         UserCodeClassLoader userCodeClassLoader = context.getUserCodeClassLoader();
         Class<RuntimeRowDataConverter> rowDataConverterClazz = compile(userCodeClassLoader.asClassLoader(), PROTOBUF_ROW_CONVERTER_CLASS, codegen);
         this.runtimeRowDataConverter = ReflectionUtils.newInstance(rowDataConverterClazz);
@@ -108,4 +110,23 @@ public class ProtobufRowDataDeserializationSchema implements DeserializationSche
         return resultTypeInfo;
     }
 
+    private static Map<String, String[]> standardFieldMappings(String fieldMapping, RowType rowType) {
+        Map<String, String[]> mappings = new HashMap<>();
+        if (fieldMapping == null || fieldMapping.isEmpty()) {
+            rowType.getFieldNames().forEach((field) -> {
+                mappings.put(field, new String[] {field});
+            });
+            return mappings;
+        }
+        // format: field1=path1;field1=path1
+        String[] mapping = fieldMapping.split(";");
+        for (String mp : mapping) {
+            String[] nameToPath = mp.split("=");
+            if (!nameToPath[1].startsWith("$.")) {
+                throw new RuntimeException("field path should start with '$.'");
+            }
+            mappings.put(nameToPath[0], nameToPath[1].substring(2).split("\\."));
+        }
+        return mappings;
+    }
 }

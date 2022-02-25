@@ -27,10 +27,10 @@ public class ProtobufTypeConverterFactory {
                 return new BasicTypeConverterCodeGenerator(fd, type);
 
             case ARRAY:
-                return new ArrayTypeConverterCodeGenerator(fd, (ArrayType) type, ignoreDefaultValues);
+                return new ArrayTypeConverterCodeGenerator(fd, (ArrayType) type, fieldMappings, ignoreDefaultValues);
 
             case MAP:
-                return new MapTypeConverterCodeGenerator(fd, (MapType) type, ignoreDefaultValues);
+                return new MapTypeConverterCodeGenerator(fd, (MapType) type, fieldMappings, ignoreDefaultValues);
 
             case ROW:
                 return new RowTypeConverterCodeGenerator(fd.getMessageType(), (RowType) type, fieldMappings, ignoreDefaultValues);

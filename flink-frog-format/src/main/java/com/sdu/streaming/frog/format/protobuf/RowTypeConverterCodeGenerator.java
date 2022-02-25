@@ -49,9 +49,10 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
             String ret = format("ret$%s", getSerialId());
             sb.append(format("Object %s = null;", ret));
             // 字段值
-            final String fieldCamelName = ProtobufUtils.getStrongCamelCaseJsonName(fieldName);
-            final String fieldInputCode = getPrototbufFieldValueCode(subFd, fieldCamelName, input);
-            sb.append(codegen.codegen(ret, fieldInputCode));
+//            final String fieldCamelName = ProtobufUtils.getStrongCamelCaseJsonName(fieldName);
+//            final String fieldInputCode = getPrototbufFieldValueCode(subFd, fieldCamelName, input);
+            final String fileValueCode = getPrototbufFieldValueCode(subFd, fieldName, input);
+            sb.append(codegen.codegen(ret, fileValueCode));
 
             sb.append(format("%s.setField(%d, %s);", rowData, index, ret));
             index += 1;
@@ -92,13 +93,37 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
         return sb.toString();
     }
 
-    private static String getPrototbufFieldValueCode(Descriptors.FieldDescriptor fd, String fieldName, String protobufObjectVariable) {
-        if (fd.isRepeated()) {
-            return format("%s.get%sList()", protobufObjectVariable, fieldName);
+    private String getPrototbufFieldValueCode(Descriptors.FieldDescriptor fd, String fieldName, String protobufObjectVariable) {
+        String[] fields = fieldMappings.get(fieldName);
+        // index: (0, fields.length - 2) 必需为Message类型
+        // todo: 若是中间节点取值null, 存在空指针问题
+        StringBuilder sb = new StringBuilder(protobufObjectVariable);
+        for (int i = 0; i < fields.length; ++i) {
+            String field = ProtobufUtils.getStrongCamelCaseJsonName(fields[i]);
+            if (i == fields.length - 1) {
+                if (fd.isMapField()) {
+                    sb.append(format(".get%sMap()", field));
+                    return sb.toString();
+                }
+                if (fd.isRepeated()) {
+                    sb.append(format(".get%sList()", field));
+                    return sb.toString();
+                }
+                sb.append(format(".get%s()", field));
+                return sb.toString();
+            }
+            sb.append(format(".get%s()", field));
         }
-        if (fd.isMapField()) {
-            return format("%s.get%sMap()", protobufObjectVariable, fieldName);
-        }
-        return format("%s.get%s()", protobufObjectVariable, fieldName);
+        return sb.toString();
     }
+
+//    private static String getPrototbufFieldValueCode(Descriptors.FieldDescriptor fd, String fieldName, String protobufObjectVariable) {
+//        if (fd.isRepeated()) {
+//            return format("%s.get%sList()", protobufObjectVariable, fieldName);
+//        }
+//        if (fd.isMapField()) {
+//            return format("%s.get%sMap()", protobufObjectVariable, fieldName);
+//        }
+//        return format("%s.get%s()", protobufObjectVariable, fieldName);
+//    }
 }
