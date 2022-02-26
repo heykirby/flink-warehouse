@@ -40,7 +40,6 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
         sb.append(format("GenericRowData %s = new GenericRowData(%d);", rowData, size));
         for (final String fieldName : rowType.getFieldNames()) {
             // STEP2: 获取列字段值
-//            Descriptors.FieldDescriptor subFd = fds.stream().filter(fd -> fd.getName().equals(fieldName)).findFirst().orElse(null);
             Descriptors.FieldDescriptor subFd = getFieldDescriptor(fieldName);
             LogicalType subType = rowType.getTypeAt(rowType.getFieldIndex(fieldName));
             TypeConverterCodeGenerator codegen = getProtobufTypeConverterCodeGenerator(fieldMappings, subFd, subType, ignoreDefaultValues);
@@ -48,8 +47,6 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
             String ret = format("ret$%s", getSerialId());
             sb.append(format("Object %s = null;", ret));
             // 字段值
-//            final String fieldCamelName = ProtobufUtils.getStrongCamelCaseJsonName(fieldName);
-//            final String fieldInputCode = getPrototbufFieldValueCode(subFd, fieldCamelName, input);
             final String fileValueCode = getPrototbufFieldValueCode(subFd, fieldName, input);
             sb.append(codegen.codegen(ret, fileValueCode));
 
@@ -115,14 +112,4 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
         }
         return sb.toString();
     }
-
-//    private static String getPrototbufFieldValueCode(Descriptors.FieldDescriptor fd, String fieldName, String protobufObjectVariable) {
-//        if (fd.isRepeated()) {
-//            return format("%s.get%sList()", protobufObjectVariable, fieldName);
-//        }
-//        if (fd.isMapField()) {
-//            return format("%s.get%sMap()", protobufObjectVariable, fieldName);
-//        }
-//        return format("%s.get%s()", protobufObjectVariable, fieldName);
-//    }
 }
