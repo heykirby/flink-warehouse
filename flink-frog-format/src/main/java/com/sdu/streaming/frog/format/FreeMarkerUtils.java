@@ -4,10 +4,7 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.apache.flink.util.IOUtils;
 
-import java.io.File;
 import java.io.StringWriter;
-import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 
 public class FreeMarkerUtils {
@@ -16,13 +13,8 @@ public class FreeMarkerUtils {
 
     static {
         cfg = new Configuration();
-        // 设置模板目录
-        URL templateURL = FreeMarkerUtils.class.getClassLoader().getResource("template");
-        if (templateURL == null) {
-            throw new RuntimeException("cant find 'template' directory.");
-        }
         try {
-            cfg.setDirectoryForTemplateLoading(new File(templateURL.getFile()));
+            cfg.setClassForTemplateLoading(FreeMarkerUtils.class, "/template");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

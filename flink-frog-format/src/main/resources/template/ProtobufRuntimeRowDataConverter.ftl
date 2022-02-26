@@ -32,8 +32,8 @@ public class ProtobufRuntimeRowDataConverter implements RuntimeRowDataConverter 
 
     private RowData convert(${protobuf_class} ${input_variable}) throws Exception {
         RowData ${result_variable} = null;
-        ${converter_code};
-        return ${result_variable};`
+        ${converter_code}
+        return ${result_variable};
     }
 
 }

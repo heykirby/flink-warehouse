@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getRowTypeConverterCodeGenerator;
+import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getJavaFullName;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getProtobufDescriptor;
 import static org.apache.flink.table.runtime.generated.CompileUtils.compile;
 
@@ -64,15 +65,17 @@ public class ProtobufRowDataDeserializationSchema implements DeserializationSche
     @Override
     public void open(InitializationContext context) throws Exception {
         // STEP1: 数据读取映射
+        Descriptors.Descriptor descriptor = getProtobufDescriptor(clazz, context.getUserCodeClassLoader().asClassLoader());
         Map<String, String[]> fieldMappings = standardFieldMappings(fieldMapping, rowType);
         // STEP2: 生成模板代码
         Map<String, Object> props = new HashMap<>();
-        props.put(PROTOBUF_CLASS_MACRO, clazz);
+        props.put(PROTOBUF_CLASS_MACRO, getJavaFullName(descriptor));
         props.put(PROTOBUF_INPUT_MACRO, PROTOBUF_INPUT_VAR_NAME);
         props.put(PROTOBUF_OUTPUT_MACRO, PROTOBUF_OUTPUT_VAR_NAME);
 
-        Descriptors.Descriptor descriptor = getProtobufDescriptor(clazz);
         TypeConverterCodeGenerator codeGenerator = getRowTypeConverterCodeGenerator(descriptor, rowType, fieldMappings, ignoreDefaultValue);
+//        String code = codeGenerator.codegen(PROTOBUF_OUTPUT_VAR_NAME, PROTOBUF_INPUT_VAR_NAME);
+//        LOG.info("converter code: {}", code);
         props.put(PROTOBUF_CONVERT_MACRO, codeGenerator.codegen(PROTOBUF_OUTPUT_VAR_NAME, PROTOBUF_INPUT_VAR_NAME));
 
         String codegen = FreeMarkerUtils.getTemplateCode(PROTOBUF_CODE_TEMPLATE_NAME, props);

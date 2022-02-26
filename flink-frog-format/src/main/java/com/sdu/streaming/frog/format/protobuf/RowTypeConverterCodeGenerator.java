@@ -32,7 +32,6 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
 
     @Override
     public String codegen(String resultVariable, String inputCode) {
-
         StringBuilder sb = new StringBuilder();
         int index = 0, size = rowType.getFieldCount();
         String input = format("input$%d",getSerialId());
@@ -71,7 +70,7 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
             if (ret == null) {
                 throw new RuntimeException("cant find field descriptor for path: " + join(fields, i));
             }
-            if (i != field.length() - 1) {
+            if (i != fields.length - 1) {
                 fds = ret.getMessageType().getFields();
                 ret = null;
             }

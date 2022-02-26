@@ -10,9 +10,9 @@ public class ProtobufUtils {
 
     }
 
-    public static Descriptors.Descriptor getProtobufDescriptor(String className) {
+    public static Descriptors.Descriptor getProtobufDescriptor(String className, ClassLoader classLoader) {
         try {
-            Class<?> clazz = Class.forName(className);
+            Class<?> clazz = Class.forName(className, true, classLoader);
             return (Descriptors.Descriptor) clazz.getMethod("getDescriptor").invoke(null);
         } catch (Exception e) {
             throw new RuntimeException(e);

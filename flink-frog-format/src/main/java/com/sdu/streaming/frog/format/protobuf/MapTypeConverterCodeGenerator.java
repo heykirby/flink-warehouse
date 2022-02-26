@@ -47,7 +47,7 @@ public class MapTypeConverterCodeGenerator implements TypeConverterCodeGenerator
         String valueType = ProtobufUtils.getJavaType(valueFd);
         sb.append(format("Map<%s, %s> %s = %s;", keyType, valueType, input, inputCode));
         String ret = format("ret$%d", getSerialId());
-        sb.append(format("Map<Object, Object> %s = new HashMap<>();", ret));
+        sb.append(format("Map<Object, Object> %s = new HashMap();", ret));
         String entry = format("entry$%d", getSerialId());
         sb.append(format("for(Map.Entry<%s, %s> %s : %s.entrySet()) { ", keyType, valueType, entry, input));
         String key = format("key$%d", getSerialId());

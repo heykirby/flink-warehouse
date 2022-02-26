@@ -22,6 +22,7 @@
             <artifactId>flink-frog-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+
     </dependencies>
 
 </project>
