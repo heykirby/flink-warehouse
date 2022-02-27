@@ -11,8 +11,21 @@ public class FrogJobTask implements Serializable {
     private String name;
     // 是否流模式
     private boolean streaming;
-    // 物料(表)
+    /*
+     * supported sql statement:
+     * 1. SET 'key' = 'value'
+     * */
+    private List<String> configurations;
+    /*
+     * supported sql statement:
+     * 1. CREATE TABLE ...
+     * 2. CREATE FUNCTION ...
+     * 3. CREATE VIEW
+     * */
     private List<String> materials;
-    // 计算
+    /*
+     * supported sql statement:
+     * 1. INSERT INTO ...
+     * */
     private List<String> calculates;
 }
