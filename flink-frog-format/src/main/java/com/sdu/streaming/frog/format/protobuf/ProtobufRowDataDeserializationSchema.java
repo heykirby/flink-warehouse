@@ -2,13 +2,13 @@ package com.sdu.streaming.frog.format.protobuf;
 
 import com.google.protobuf.Descriptors;
 import com.sdu.streaming.frog.format.FreeMarkerUtils;
-import com.sdu.streaming.frog.format.ReflectionUtils;
 import com.sdu.streaming.frog.format.RuntimeRowDataConverter;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.util.InstantiationUtil;
 import org.apache.flink.util.UserCodeClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +84,7 @@ public class ProtobufRowDataDeserializationSchema implements DeserializationSche
         // STEP3: 构建实例
         UserCodeClassLoader userCodeClassLoader = context.getUserCodeClassLoader();
         Class<RuntimeRowDataConverter> rowDataConverterClazz = compile(userCodeClassLoader.asClassLoader(), PROTOBUF_ROW_CONVERTER_CLASS, codegen);
-        this.runtimeRowDataConverter = ReflectionUtils.newInstance(rowDataConverterClazz);
+        this.runtimeRowDataConverter = InstantiationUtil.instantiate(rowDataConverterClazz);
     }
 
     @Override
