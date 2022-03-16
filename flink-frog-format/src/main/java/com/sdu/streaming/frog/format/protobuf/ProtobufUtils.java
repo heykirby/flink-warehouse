@@ -1,14 +1,11 @@
 package com.sdu.streaming.frog.format.protobuf;
 
+import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 
+import static java.lang.String.format;
+
 public class ProtobufUtils {
-
-    public static final String OUTER_CLASS = "OuterClass";
-
-    private ProtobufUtils() {
-
-    }
 
     public static Descriptors.Descriptor getProtobufDescriptor(String className, ClassLoader classLoader) {
         try {
@@ -51,36 +48,36 @@ public class ProtobufUtils {
         }
     }
 
+    public static String getProtobufWrapperClass(Descriptors.Descriptor descriptor) {
+        // see https://developers.google.com/protocol-buffers/docs/javatutorial
+        DescriptorProtos.FileOptions options = descriptor.getFile().getOptions();
+        String javaPackage = options.hasJavaPackage() ? options.getJavaPackage()
+                : descriptor.getFile().getPackage();
+        String wrapperClass = options.hasJavaOuterClassname() ? options.getJavaOuterClassname()
+                : getProtobufWrapperClass(descriptor.getFile().toProto());
+        return format("%s.%s", javaPackage, wrapperClass);
+    }
+
     public static String getJavaFullName(Descriptors.Descriptor descriptor) {
-        String javaPackageName = descriptor.getFile().getOptions().getJavaPackage();
-        if (descriptor.getFile().getOptions().getJavaMultipleFiles()) {
-            //multiple_files=true
-            if (null != descriptor.getContainingType()) {
-                //nested type
-                String parentJavaFullName = getJavaFullName(descriptor.getContainingType());
-                return parentJavaFullName + "." + descriptor.getName();
-            } else {
-                //top level message
-                return javaPackageName + "." + descriptor.getName();
-            }
-        } else {
-            //multiple_files=false
-            if (null != descriptor.getContainingType()) {
-                //nested type
-                String parentJavaFullName = getJavaFullName(descriptor.getContainingType());
-                return parentJavaFullName + "." + descriptor.getName();
-            } else {
-                //top level message
-                if (!descriptor.getFile().getOptions().hasJavaOuterClassname()) {
-                    //user do not define outer class name in proto file
-                    return javaPackageName + "." + descriptor.getName() + OUTER_CLASS + "." + descriptor.getName();
-                } else {
-                    String outerName = descriptor.getFile().getOptions().getJavaOuterClassname();
-                    //user define outer class name in proto file
-                    return javaPackageName + "." + outerName + "." + descriptor.getName();
-                }
-            }
+        // see https://developers.google.com/protocol-buffers/docs/javatutorial
+        // nb
+        DescriptorProtos.FileOptions options = descriptor.getFile().getOptions();
+        String javaPackage = options.hasJavaPackage() ? options.getJavaPackage()
+                : descriptor.getFile().getPackage();
+        if (options.hasJavaMultipleFiles()) {
+            return format("%s.%s", javaPackage, descriptor.getName());
         }
+        String wrapperClass = options.hasJavaOuterClassname() ? options.getJavaOuterClassname()
+                : getProtobufWrapperClass(descriptor.getFile().toProto());
+        return format("%s.%s.%s", javaPackage, wrapperClass, descriptor.getName());
+    }
+
+    private static String getProtobufWrapperClass(DescriptorProtos.FileDescriptorProto proto) {
+        String name = proto.getName();
+        int index = name.lastIndexOf("/");
+        String fileName = index != -1 ? name.substring(index + 1) : name;
+        String fileNameWithNoSuffix = fileName.split("\\.")[0];
+        return getStrongCamelCaseJsonName(fileNameWithNoSuffix);
     }
 
     public static String getJavaType(Descriptors.FieldDescriptor fd) {
@@ -106,4 +103,5 @@ public class ProtobufUtils {
                 throw new UnsupportedOperationException("unsupported field type: " + fd.getJavaType());
         }
     }
+
 }
