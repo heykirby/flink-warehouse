@@ -17,6 +17,13 @@ import java.util.regex.Pattern;
 
 public class FrogKafkaDynamicTableFactory extends KafkaDynamicTableFactory {
 
+    private static final String IDENTIFIER = "frog-kafka";
+
+    @Override
+    public String factoryIdentifier() {
+        return IDENTIFIER;
+    }
+
     @Override
     protected KafkaDynamicSource createKafkaTableSource(DataType physicalDataType,
                                                         @Nullable DecodingFormat<DeserializationSchema<RowData>> keyDecodingFormat,
@@ -48,4 +55,5 @@ public class FrogKafkaDynamicTableFactory extends KafkaDynamicTableFactory {
                 tableIdentifier,
                 1);
     }
+
 }
