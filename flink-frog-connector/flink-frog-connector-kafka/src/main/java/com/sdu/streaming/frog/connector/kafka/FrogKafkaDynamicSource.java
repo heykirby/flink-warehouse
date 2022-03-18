@@ -15,6 +15,8 @@ import java.util.regex.Pattern;
 
 public class FrogKafkaDynamicSource extends KafkaDynamicSource {
 
+    private final int parallelism;
+
     public FrogKafkaDynamicSource(DataType physicalDataType,
                                   DecodingFormat<DeserializationSchema<RowData>> keyDecodingFormat,
                                   DecodingFormat<DeserializationSchema<RowData>> valueDecodingFormat,
@@ -28,7 +30,8 @@ public class FrogKafkaDynamicSource extends KafkaDynamicSource {
                                   Map<KafkaTopicPartition, Long> specificStartupOffsets,
                                   long startupTimestampMillis,
                                   boolean upsertMode,
-                                  String tableIdentifier) {
+                                  String tableIdentifier,
+                                  int parallelism) {
         super(physicalDataType,
                 keyDecodingFormat,
                 valueDecodingFormat,
@@ -43,6 +46,7 @@ public class FrogKafkaDynamicSource extends KafkaDynamicSource {
                 startupTimestampMillis,
                 upsertMode,
                 tableIdentifier);
+        this.parallelism = parallelism;
     }
 
     @Override
