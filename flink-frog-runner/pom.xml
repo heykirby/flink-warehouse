@@ -26,8 +26,20 @@
     </dependencies>
 
     <profiles>
+        <!-- connectors -->
         <profile>
-            <!-- formats -->
+            <id>profile</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.sdu.streaming</groupId>
+                    <artifactId>flink-frog-connector-kafka</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <!-- formats -->
+        <profile>
             <id>protobuf</id>
             <dependencies>
                 <dependency>
