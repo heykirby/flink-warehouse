@@ -1,8 +1,7 @@
 package com.sdu.streaming.frog.format.protobuf;
 
 import com.google.protobuf.Descriptors;
-import com.sdu.streaming.frog.format.FreeMarkerUtils;
-import com.sdu.streaming.frog.format.RuntimeRowDataConverter;
+import com.sdu.streaming.frog.format.protobuf.utils.FreeMarkerUtils;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;

@@ -1,13 +1,13 @@
 package com.sdu.streaming.frog.format.protobuf;
 
 import com.google.protobuf.Descriptors;
+import com.sdu.streaming.frog.format.protobuf.utils.VariableUtils;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.util.List;
 import java.util.Map;
 
-import static com.sdu.streaming.frog.format.VariableUtils.getSerialId;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getJavaFullName;
 import static java.lang.String.format;
@@ -34,8 +34,8 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
     public String codegen(String resultVariable, String inputCode) {
         StringBuilder sb = new StringBuilder();
         int index = 0, size = rowType.getFieldCount();
-        String input = format("input$%d",getSerialId());
-        String rowData = format("row$%d", getSerialId());
+        String input = String.format("input$%d", VariableUtils.getSerialId());
+        String rowData = String.format("row$%d", VariableUtils.getSerialId());
         sb.append(format("%s %s = %s;", getJavaFullName(descriptor), input, inputCode));
         sb.append(format("GenericRowData %s = new GenericRowData(%d);", rowData, size));
         for (final String fieldName : rowType.getFieldNames()) {
@@ -44,7 +44,7 @@ public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator
             LogicalType subType = rowType.getTypeAt(rowType.getFieldIndex(fieldName));
             TypeConverterCodeGenerator codegen = getProtobufTypeConverterCodeGenerator(fieldMappings, subFd, subType, ignoreDefaultValues);
             // 字段结果变量
-            String ret = format("ret$%s", getSerialId());
+            String ret = String.format("ret$%s", VariableUtils.getSerialId());
             sb.append(format("Object %s = null;", ret));
             // 字段值
             final String fileValueCode = getPrototbufFieldValueCode(subFd, fieldName, input);

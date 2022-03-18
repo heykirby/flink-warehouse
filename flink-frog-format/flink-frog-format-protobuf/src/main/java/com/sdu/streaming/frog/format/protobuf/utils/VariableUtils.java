@@ -1,4 +1,4 @@
-package com.sdu.streaming.frog.format;
+package com.sdu.streaming.frog.format.protobuf.utils;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

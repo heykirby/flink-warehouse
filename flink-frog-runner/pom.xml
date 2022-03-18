@@ -25,4 +25,18 @@
 
     </dependencies>
 
+    <profiles>
+        <profile>
+            <!-- formats -->
+            <id>protobuf</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.sdu.streaming</groupId>
+                    <artifactId>flink-frog-format-protobuf</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
 </project>

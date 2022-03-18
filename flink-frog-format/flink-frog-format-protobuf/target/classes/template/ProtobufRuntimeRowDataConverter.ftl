@@ -1,6 +1,6 @@
 package com.sdu.streaming.frog.format.protobuf;
 
-import com.sdu.streaming.frog.format.RuntimeRowDataConverter;
+import com.sdu.streaming.frog.format.protobuf.RuntimeRowDataConverter;
 import ${protobuf_class};
 import ${protobuf_class}.*;
 

@@ -1,12 +1,12 @@
 package com.sdu.streaming.frog.format.protobuf;
 
 import com.google.protobuf.Descriptors;
+import com.sdu.streaming.frog.format.protobuf.utils.VariableUtils;
 import org.apache.flink.table.types.logical.ArrayType;
 import org.apache.flink.table.types.logical.LogicalType;
 
 import java.util.Map;
 
-import static com.sdu.streaming.frog.format.VariableUtils.getSerialId;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
 import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getJavaType;
 import static java.lang.String.format;
@@ -39,14 +39,14 @@ public class ArrayTypeConverterCodeGenerator implements TypeConverterCodeGenerat
          * */
         String elementType = getJavaType(fd);
         StringBuilder sb = new StringBuilder();
-        String input = format("input$%d", getSerialId());
+        String input = String.format("input$%d", VariableUtils.getSerialId());
         sb.append(format("List<%s> %s = %s;", elementType, input, inputCode));
-        String res = format("res$%d", getSerialId());
+        String res = String.format("res$%d", VariableUtils.getSerialId());
         sb.append(format("Object[] %s = new Object[%s.size()];", res, input));
-        String el = format("el$%d", getSerialId());
+        String el = String.format("el$%d", VariableUtils.getSerialId());
         sb.append("int index = 0;");
         sb.append(format("for (%s %s : %s) { ", elementType, el, input));
-        String ret = format("ret$%d", getSerialId());
+        String ret = String.format("ret$%d", VariableUtils.getSerialId());
         sb.append(format("Object %s = null;", ret));
         TypeConverterCodeGenerator codeGenerator = getProtobufTypeConverterCodeGenerator(fieldMappings, fd, type, ignoreDefaultValues);
         sb.append(codeGenerator.codegen(ret, el));
