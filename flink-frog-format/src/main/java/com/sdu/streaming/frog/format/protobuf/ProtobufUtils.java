@@ -7,6 +7,10 @@ import static java.lang.String.format;
 
 public class ProtobufUtils {
 
+    private ProtobufUtils() {
+
+    }
+
     public static Descriptors.Descriptor getProtobufDescriptor(String className, ClassLoader classLoader) {
         try {
             Class<?> clazz = Class.forName(className, true, classLoader);
