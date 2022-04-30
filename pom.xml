@@ -5,15 +5,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.sdu.streaming</groupId>
-    <artifactId>flink-frog</artifactId>
+    <artifactId>flink-warehouse</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
 
     <modules>
-        <module>flink-frog-connector</module>
-        <module>flink-frog-format</module>
-        <module>flink-frog-runner</module>
-        <module>flink-frog-common</module>
+        <module>flink-warehouse-connector</module>
+        <module>flink-warehouse-format</module>
+        <module>flink-warehouse-runner</module>
+        <module>flink-warehouse-common</module>
     </modules>
 
     <properties>
