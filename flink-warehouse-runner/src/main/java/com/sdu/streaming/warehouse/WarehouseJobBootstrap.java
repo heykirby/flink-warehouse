@@ -1,6 +1,6 @@
 package com.sdu.streaming.warehouse;
 
-import com.sdu.streaming.warehouse.dto.NoahArkJobTask;
+import com.sdu.streaming.warehouse.dto.WarehouseJobTask;
 import com.sdu.streaming.warehouse.utils.Base64Utils;
 import com.sdu.streaming.warehouse.utils.JsonUtils;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -17,12 +17,14 @@ import org.apache.flink.table.operations.command.SetOperation;
 import java.util.Collections;
 import java.util.List;
 
-public class StreamingJobBootstrap {
+import static com.sdu.streaming.warehouse.UserFunctionDiscovery.registerBuildInUserFunction;
+
+public class WarehouseJobBootstrap {
 
     private static final String TASK_CONFIG_KEY = "taskConfig";
-    private static final String DEFAULT_JOB_NAME = "NoahArk-Streaming-Job";
+    private static final String DEFAULT_JOB_NAME = "Warehouse-Job";
 
-    private static void checkStreamingJobParameters(NoahArkJobTask task) {
+    private static void checkStreamingJobParameters(WarehouseJobTask task) {
         if (task == null) {
             throw new IllegalArgumentException("undefine task");
         }
@@ -40,17 +42,17 @@ public class StreamingJobBootstrap {
         }
     }
 
-    private static TableEnvironment initializeTableEnvironment(NoahArkJobTask task) {
+    private static TableEnvironment initializeTableEnvironment(WarehouseJobTask task) {
         return task.isStreaming() ? initializeStreamTableEnvironment(task)
                                   : initializeBatchTableEnvironment(task);
     }
 
-    private static TableEnvironment initializeStreamTableEnvironment(NoahArkJobTask task) {
+    private static TableEnvironment initializeStreamTableEnvironment(WarehouseJobTask task) {
         return TableEnvironment.create(
                 EnvironmentSettings.newInstance().inStreamingMode().build());
     }
 
-    private static TableEnvironment initializeBatchTableEnvironment(NoahArkJobTask task) {
+    private static TableEnvironment initializeBatchTableEnvironment(WarehouseJobTask task) {
         TableEnvironment tableEnv = TableEnvironment.create(
                 EnvironmentSettings.newInstance().inBatchMode().build());
         // TODO: load hive catalog
@@ -58,7 +60,7 @@ public class StreamingJobBootstrap {
         return tableEnv;
     }
 
-    private static void initializeTaskConfiguration(final TableEnvironment tableEnv, NoahArkJobTask task) {
+    private static void initializeTaskConfiguration(final TableEnvironment tableEnv, WarehouseJobTask task) {
         task.getConfigurations().forEach(sql -> {
             if (tableEnv instanceof TableEnvironmentImpl) {
                 TableEnvironmentInternal tableEnvInternal = (TableEnvironmentInternal) tableEnv;
@@ -78,17 +80,18 @@ public class StreamingJobBootstrap {
         });
     }
 
-    private static void initializeTaskMaterials(TableEnvironment tableEnv, NoahArkJobTask task) {
+    private static void initializeTaskMaterials(TableEnvironment tableEnv, WarehouseJobTask task) {
+        registerBuildInUserFunction(tableEnv);
         task.getMaterials().forEach(tableEnv::executeSql);
     }
 
-    private static StatementSet initializeTaskCalculateLogic(TableEnvironment tableEnv, NoahArkJobTask task) {
+    private static StatementSet initializeTaskCalculateLogic(TableEnvironment tableEnv, WarehouseJobTask task) {
         StatementSet statements = tableEnv.createStatementSet();
         task.getCalculates().forEach(statements::addInsertSql);
         return statements;
     }
 
-    private static void initializeJobNameAndExecute(TableEnvironment tableEnv, StatementSet statements, NoahArkJobTask task) {
+    private static void initializeJobNameAndExecute(TableEnvironment tableEnv, StatementSet statements, WarehouseJobTask task) {
         tableEnv.getConfig().getConfiguration().set(PipelineOptions.NAME, task.getName());
         statements.execute();
     }
@@ -97,7 +100,7 @@ public class StreamingJobBootstrap {
         try {
             ParameterTool parameterTool = ParameterTool.fromArgs(args);
             String taskJson = Base64Utils.decode(parameterTool.get(TASK_CONFIG_KEY));
-            NoahArkJobTask task = JsonUtils.fromJson(taskJson, NoahArkJobTask.class);
+            WarehouseJobTask task = JsonUtils.fromJson(taskJson, WarehouseJobTask.class);
             // STEP1: 校验参数
             checkStreamingJobParameters(task);
             // STEP2: 环境配置
@@ -116,7 +119,7 @@ public class StreamingJobBootstrap {
     }
 
     public static void main(String[] args) {
-        StreamingJobBootstrap.run(args);
+        WarehouseJobBootstrap.run(args);
     }
 
 }
