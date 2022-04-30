@@ -1,15 +1,15 @@
-package com.sdu.streaming.frog.format.protobuf;
+package com.sdu.streaming.warehouse.format.protobuf;
 
 import com.google.protobuf.Descriptors;
-import com.sdu.streaming.frog.format.protobuf.utils.VariableUtils;
+import com.sdu.streaming.warehouse.format.protobuf.utils.VariableUtils;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.util.List;
 import java.util.Map;
 
-import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
-import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getJavaFullName;
+import static com.sdu.streaming.warehouse.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
+import static com.sdu.streaming.warehouse.format.protobuf.ProtobufUtils.getJavaFullName;
 import static java.lang.String.format;
 
 public class RowTypeConverterCodeGenerator implements TypeConverterCodeGenerator {

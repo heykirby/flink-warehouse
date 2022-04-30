@@ -1,4 +1,4 @@
-package com.sdu.streaming.frog.format.protobuf;
+package com.sdu.streaming.warehouse.format.protobuf;
 
 public interface TypeConverterCodeGenerator {
 

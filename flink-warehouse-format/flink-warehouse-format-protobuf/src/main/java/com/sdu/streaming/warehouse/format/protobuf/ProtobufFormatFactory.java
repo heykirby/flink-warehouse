@@ -1,4 +1,4 @@
-package com.sdu.streaming.frog.format.protobuf;
+package com.sdu.streaming.warehouse.format.protobuf;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SerializationSchema;
@@ -20,7 +20,7 @@ import org.apache.flink.table.types.logical.RowType;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.sdu.streaming.frog.format.protobuf.ProtobufFormatOptions.*;
+import static com.sdu.streaming.warehouse.format.protobuf.ProtobufFormatOptions.*;
 
 public class ProtobufFormatFactory implements DeserializationFormatFactory, SerializationFormatFactory {
 

@@ -1,8 +1,8 @@
-package com.sdu.streaming.frog;
+package com.sdu.streaming.warehouse;
 
-import com.sdu.streaming.frog.dto.FrogJobTask;
-import com.sdu.streaming.frog.utils.Base64Utils;
-import com.sdu.streaming.frog.utils.JsonUtils;
+import com.sdu.streaming.warehouse.dto.FrogJobTask;
+import com.sdu.streaming.warehouse.utils.Base64Utils;
+import com.sdu.streaming.warehouse.utils.JsonUtils;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.PipelineOptions;

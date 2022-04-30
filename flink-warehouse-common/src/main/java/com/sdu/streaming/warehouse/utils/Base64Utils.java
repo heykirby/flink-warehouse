@@ -1,4 +1,4 @@
-package com.sdu.streaming.frog.utils;
+package com.sdu.streaming.warehouse.utils;
 
 import java.io.IOException;
 import java.nio.charset.Charset;

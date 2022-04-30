@@ -1,4 +1,4 @@
-package com.sdu.streaming.frog.dto;
+package com.sdu.streaming.warehouse.dto;
 
 import lombok.Data;
 

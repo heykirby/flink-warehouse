@@ -1,4 +1,4 @@
-package com.sdu.streaming.frog.format.protobuf;
+package com.sdu.streaming.warehouse.format.protobuf;
 
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.configuration.ConfigOption;

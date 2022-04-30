@@ -1,4 +1,4 @@
-package com.sdu.streaming.frog.format.protobuf;
+package com.sdu.streaming.warehouse.format.protobuf;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.table.data.RowData;

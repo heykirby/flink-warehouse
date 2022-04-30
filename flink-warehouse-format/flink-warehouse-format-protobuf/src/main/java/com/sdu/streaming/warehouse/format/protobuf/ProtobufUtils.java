@@ -1,4 +1,4 @@
-package com.sdu.streaming.frog.format.protobuf;
+package com.sdu.streaming.warehouse.format.protobuf;
 
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;

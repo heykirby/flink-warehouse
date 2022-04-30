@@ -1,7 +1,7 @@
-package com.sdu.streaming.frog.format.protobuf;
+package com.sdu.streaming.warehouse.format.protobuf;
 
 import com.google.protobuf.Descriptors;
-import com.sdu.streaming.frog.format.protobuf.utils.FreeMarkerUtils;
+import com.sdu.streaming.warehouse.format.protobuf.utils.FreeMarkerUtils;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -16,9 +16,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.sdu.streaming.frog.format.protobuf.ProtobufTypeConverterFactory.getRowTypeConverterCodeGenerator;
-import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getJavaFullName;
-import static com.sdu.streaming.frog.format.protobuf.ProtobufUtils.getProtobufDescriptor;
+import static com.sdu.streaming.warehouse.format.protobuf.ProtobufTypeConverterFactory.getRowTypeConverterCodeGenerator;
+import static com.sdu.streaming.warehouse.format.protobuf.ProtobufUtils.getJavaFullName;
+import static com.sdu.streaming.warehouse.format.protobuf.ProtobufUtils.getProtobufDescriptor;
 import static org.apache.flink.table.runtime.generated.CompileUtils.compile;
 
 @Internal

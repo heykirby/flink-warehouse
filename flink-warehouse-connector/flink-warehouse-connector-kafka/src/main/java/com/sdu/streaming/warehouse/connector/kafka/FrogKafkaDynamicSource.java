@@ -1,4 +1,4 @@
-package com.sdu.streaming.frog.connector.kafka;
+package com.sdu.streaming.warehouse.connector.kafka;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.streaming.connectors.kafka.config.StartupMode;
