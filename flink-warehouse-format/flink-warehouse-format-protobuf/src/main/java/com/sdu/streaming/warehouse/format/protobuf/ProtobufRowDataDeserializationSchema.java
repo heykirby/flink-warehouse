@@ -34,7 +34,7 @@ public class ProtobufRowDataDeserializationSchema implements DeserializationSche
     private static final String PROTOBUF_OUTPUT_VAR_NAME = "row";
     private static final String PROTOBUF_CONVERT_MACRO = "converter_code";
 
-    private static final String PROTOBUF_ROW_CONVERTER_CLASS = "com.sdu.streaming.frog.format.protobuf.ProtobufRuntimeRowDataConverter";
+    private static final String PROTOBUF_ROW_CONVERTER_CLASS = "com.sdu.streaming.warehouse.format.protobuf.ProtobufRuntimeRowDataConverter";
 
     private final RowType rowType;
     private final TypeInformation<RowData> resultTypeInfo;

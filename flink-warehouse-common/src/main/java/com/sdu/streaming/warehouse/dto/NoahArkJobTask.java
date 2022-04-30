@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class FrogJobTask implements Serializable {
+public class NoahArkJobTask implements Serializable {
     // 任务名
     private String name;
     // 是否流模式

@@ -13,25 +13,25 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-public class FrogKafkaDynamicSource extends KafkaDynamicSource {
+public class NoahArkKafkaDynamicSource extends KafkaDynamicSource {
 
     private final int parallelism;
 
-    public FrogKafkaDynamicSource(DataType physicalDataType,
-                                  DecodingFormat<DeserializationSchema<RowData>> keyDecodingFormat,
-                                  DecodingFormat<DeserializationSchema<RowData>> valueDecodingFormat,
-                                  int[] keyProjection,
-                                  int[] valueProjection,
-                                  String keyPrefix,
-                                  List<String> topics,
-                                  Pattern topicPattern,
-                                  Properties properties,
-                                  StartupMode startupMode,
-                                  Map<KafkaTopicPartition, Long> specificStartupOffsets,
-                                  long startupTimestampMillis,
-                                  boolean upsertMode,
-                                  String tableIdentifier,
-                                  int parallelism) {
+    public NoahArkKafkaDynamicSource(DataType physicalDataType,
+                                     DecodingFormat<DeserializationSchema<RowData>> keyDecodingFormat,
+                                     DecodingFormat<DeserializationSchema<RowData>> valueDecodingFormat,
+                                     int[] keyProjection,
+                                     int[] valueProjection,
+                                     String keyPrefix,
+                                     List<String> topics,
+                                     Pattern topicPattern,
+                                     Properties properties,
+                                     StartupMode startupMode,
+                                     Map<KafkaTopicPartition, Long> specificStartupOffsets,
+                                     long startupTimestampMillis,
+                                     boolean upsertMode,
+                                     String tableIdentifier,
+                                     int parallelism) {
         super(physicalDataType,
                 keyDecodingFormat,
                 valueDecodingFormat,
