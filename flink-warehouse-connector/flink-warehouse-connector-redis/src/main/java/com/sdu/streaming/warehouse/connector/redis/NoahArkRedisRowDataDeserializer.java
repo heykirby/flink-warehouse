@@ -1,65 +1,62 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
 import org.apache.flink.table.data.*;
+import org.apache.flink.table.types.logical.ArrayType;
 import org.apache.flink.table.types.logical.LogicalType;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 
+import static com.sdu.streaming.warehouse.connector.redis.NoahArkDeserializerUtils.*;
 import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.*;
 
-public interface NoahArkRedisDataObjectDeserializer extends Serializable {
+public interface NoahArkRedisRowDataDeserializer extends Serializable {
 
     void serializer(RowData data, ByteBuffer out);
 
 
-    static NoahArkRedisDataObjectDeserializer createRedisDataObjectDeserializer(LogicalType fieldType, int fieldPos) {
-        NoahArkRedisDataObjectDeserializer deserializer;
+    static NoahArkRedisRowDataDeserializer createRedisDataObjectDeserializer(LogicalType fieldType, int fieldPos) {
+        NoahArkRedisRowDataDeserializer deserializer;
         // ordered by type root definition
         switch (fieldType.getTypeRoot()) {
             case CHAR:
             case VARCHAR:
                 deserializer = (data, out) -> {
-                    StringData field = data.getString(fieldPos);
-                    byte[] values = field.toBytes();
-                    out.putInt(values.length);
-                    out.put(values);
+                    StringData value = data.getString(fieldPos);
+                    serializeStringData(value, out);
                 };
                 break;
             case BOOLEAN:
                 deserializer = (data, out) -> {
                     boolean value = data.getBoolean(fieldPos);
-                    out.putInt(value ? 1 : 0);
+                    serializeBooleanData(value, out);
                 };
                 break;
             case BINARY:
             case VARBINARY:
                 deserializer = (data, out) -> {
                     byte[] values = data.getBinary(fieldPos);
-                    out.putInt(values.length);
-                    out.put(values);
+                    serializeBinaryData(values, out);
                 };
                 break;
             case DECIMAL:
                 final int decimalPrecision = getPrecision(fieldType);
                 final int decimalScale = getScale(fieldType);
                 deserializer = (data, out) -> {
-                    DecimalData field = data.getDecimal(fieldPos, decimalPrecision, decimalScale);
-                    byte[] values = field.toUnscaledBytes();
-                    out.putInt(values.length);
-                    out.put(values);
+                    DecimalData value = data.getDecimal(fieldPos, decimalPrecision, decimalScale);
+                    serializeDecimalData(value, out);
                 };
                 break;
             case TINYINT:
                 deserializer = (data, out) -> {
                     byte value = data.getByte(fieldPos);
-                    out.put(value);
+                    serializeByteData(value, out);
                 };
                 break;
             case SMALLINT:
                 deserializer = (data, out) -> {
                     short value = data.getShort(fieldPos);
-                    out.putShort(value);
+                    serializeShortData(value, out);
                 };
                 break;
             case INTEGER:
@@ -68,26 +65,26 @@ public interface NoahArkRedisDataObjectDeserializer extends Serializable {
             case INTERVAL_YEAR_MONTH:
                 deserializer = (data, out) -> {
                     int value = data.getInt(fieldPos);
-                    out.putInt(value);
+                    serializeIntData(value, out);
                 };
                 break;
             case BIGINT:
             case INTERVAL_DAY_TIME:
                 deserializer = (data, out) -> {
                     long value = data.getLong(fieldPos);
-                    out.putLong(value);
+                    serializeLongData(value, out);
                 };
                 break;
             case FLOAT:
                 deserializer = (data, out) -> {
                     float value = data.getFloat(fieldPos);
-                    out.putFloat(value);
+                    serializeFloatData(value, out);
                 };
                 break;
             case DOUBLE:
                 deserializer = (data, out) -> {
                     double value = data.getDouble(fieldPos);
-                    out.putDouble(value);
+                    serializeDoubleData(value, out);
                 };
                 break;
             case TIMESTAMP_WITHOUT_TIME_ZONE:
@@ -95,8 +92,7 @@ public interface NoahArkRedisDataObjectDeserializer extends Serializable {
                 final int timestampPrecision = getPrecision(fieldType);
                 deserializer = (data, out) -> {
                     TimestampData value = data.getTimestamp(fieldPos, timestampPrecision);
-                    out.putLong(value.getMillisecond());
-                    out.putLong(value.getNanoOfMillisecond());
+                    serializeTimestampData(value, out);
                 };
                 break;
             case RAW:
@@ -104,8 +100,9 @@ public interface NoahArkRedisDataObjectDeserializer extends Serializable {
                 throw new UnsupportedOperationException();
             case ARRAY:
                 deserializer = (data, out) -> {
-                    ArrayData field = data.getArray(fieldPos);
-                    // TODO: 2022/6/15
+                    ArrayData value = data.getArray(fieldPos);
+                    ArrayType arrayType = (ArrayType) fieldType;
+                    serializeArrayData(value, arrayType.getElementType(), out);
                 };
                 break;
             case MULTISET:
