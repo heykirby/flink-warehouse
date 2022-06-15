@@ -55,10 +55,6 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
         Set<ConfigOption<?>> options = new HashSet<>();
         options.add(REDIS_STORAGE_STRUCTURE);
         options.add(REDIS_KEY_PREFIX);
-        options.add(REDIS_KEY_SEPARATOR);
-
-        // string
-        options.add(REDIS_VALUE_SEPARATOR);
 
         // write
         options.add(REDIS_EXPIRE_SECONDS);
@@ -76,9 +72,7 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
         return new NoahArkRedisWriteOptions(
                 (RowType) rowDataType.getLogicalType(),
                 tableOption.get(REDIS_KEY_PREFIX),
-                tableOption.get(REDIS_KEY_SEPARATOR),
                 primaryKeyIndexes,
-                tableOption.get(REDIS_VALUE_SEPARATOR),
                 tableOption.get(REDIS_CLUSTER),
                 tableOption.get(REDIS_WRITE_BATCH_SIZE),
                 tableOption.get(REDIS_WRITE_FLUSH_INTERVAL),

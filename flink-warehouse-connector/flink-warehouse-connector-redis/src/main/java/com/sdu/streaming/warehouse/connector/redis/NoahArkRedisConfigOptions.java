@@ -27,18 +27,6 @@ public class NoahArkRedisConfigOptions implements Serializable {
                     .defaultValue("")
                     .withDescription("redis key prefix, default: empty");
 
-    public static final ConfigOption<String> REDIS_KEY_SEPARATOR =
-            ConfigOptions.key("redis-key-separator")
-                    .stringType()
-                    .defaultValue("$")
-                    .withDescription("redis key separator, default: '$'");
-
-    public static final ConfigOption<String> REDIS_VALUE_SEPARATOR =
-            ConfigOptions.key("redis-value-separator")
-                    .stringType()
-                    .defaultValue(",")
-                    .withDescription("redis value string separator, default: ','");
-
     // Write
     public static final ConfigOption<Integer> REDIS_WRITE_BATCH_SIZE =
             ConfigOptions.key("redis-write-batch-size")
