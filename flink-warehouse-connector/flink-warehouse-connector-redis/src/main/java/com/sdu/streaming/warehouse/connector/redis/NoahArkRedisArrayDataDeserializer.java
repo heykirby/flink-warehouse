@@ -1,20 +1,21 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
-import org.apache.flink.table.data.ArrayData;
-import org.apache.flink.table.data.DecimalData;
-import org.apache.flink.table.data.StringData;
-import org.apache.flink.table.data.TimestampData;
+import org.apache.flink.table.data.*;
+import org.apache.flink.table.types.logical.ArrayType;
 import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.MapType;
+import org.apache.flink.table.types.logical.RowType;
 
+import java.io.DataOutput;
+import java.io.IOException;
 import java.io.Serializable;
-import java.nio.ByteBuffer;
 
 import static com.sdu.streaming.warehouse.connector.redis.NoahArkDeserializerUtils.*;
 import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.*;
 
 public interface NoahArkRedisArrayDataDeserializer extends Serializable {
 
-    void serializer(ArrayData data, int arrayIndex, ByteBuffer out);
+    void serializer(ArrayData data, int arrayIndex, DataOutput out) throws IOException;
 
     static NoahArkRedisArrayDataDeserializer createRedisArrayDataDeserializer(LogicalType elementType) {
         final NoahArkRedisArrayDataDeserializer deserializer;
@@ -96,27 +97,35 @@ public interface NoahArkRedisArrayDataDeserializer extends Serializable {
                     serializeTimestampData(value, out);
                 };
                 break;
+            case RAW:
             case DISTINCT_TYPE:
             case TIMESTAMP_WITH_TIME_ZONE:
                 throw new UnsupportedOperationException();
             case ARRAY:
                 deserializer = (data, arrayIndex, out) -> {
                     ArrayData value = data.getArray(arrayIndex);
-                    
+                    ArrayType arrayType = (ArrayType) elementType;
+                    serializeArrayData(value, arrayType.getElementType(), out);
                 };
                 break;
             case MULTISET:
             case MAP:
-                // TODO: 2022/6/15  
+                deserializer = (data, arrayIndex, out) -> {
+                    MapData value = data.getMap(arrayIndex);
+                    MapType type = (MapType) elementType;
+                    serializeMapData(value, type.getKeyType(), type.getValueType(), out);
+                };
                 break;
             case ROW:
             case STRUCTURED_TYPE:
                 final int rowFieldCount = getFieldCount(elementType);
-                // TODO: 2022/6/15
+                deserializer = (data, arrayIndex, out) -> {
+                    RowData value = data.getRow(arrayIndex, rowFieldCount);
+                    RowType rowType = (RowType) elementType;
+                    serializeRowData(value, rowType, out);
+                };
                 break;
-            case RAW:
-                // TODO: 2022/6/15
-                break;
+
             case NULL:
             case SYMBOL:
             case UNRESOLVED:
