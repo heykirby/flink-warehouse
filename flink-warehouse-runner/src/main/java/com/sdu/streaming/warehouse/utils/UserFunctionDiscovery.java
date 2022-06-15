@@ -1,4 +1,4 @@
-package com.sdu.streaming.warehouse;
+package com.sdu.streaming.warehouse.utils;
 
 import com.sdu.streaming.warehouse.annotation.UserFunctionHint;
 import org.apache.flink.table.api.TableEnvironment;

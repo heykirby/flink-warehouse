@@ -34,7 +34,7 @@
     <profiles>
         <!-- connectors -->
         <profile>
-            <id>profile</id>
+            <id>kafka</id>
             <dependencies>
                 <dependency>
                     <groupId>com.sdu.streaming</groupId>

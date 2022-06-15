@@ -1,8 +1,10 @@
 package com.sdu.streaming.warehouse;
 
 import com.sdu.streaming.warehouse.dto.WarehouseJobTask;
+import com.sdu.streaming.warehouse.entry.TaskLineage;
 import com.sdu.streaming.warehouse.utils.Base64Utils;
 import com.sdu.streaming.warehouse.utils.JsonUtils;
+import com.sdu.streaming.warehouse.utils.SqlParseUtils;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.PipelineOptions;
@@ -17,7 +19,7 @@ import org.apache.flink.table.operations.command.SetOperation;
 import java.util.Collections;
 import java.util.List;
 
-import static com.sdu.streaming.warehouse.UserFunctionDiscovery.registerBuildInUserFunction;
+import static com.sdu.streaming.warehouse.utils.UserFunctionDiscovery.registerBuildInUserFunction;
 
 public class WarehouseJobBootstrap {
 
@@ -91,12 +93,22 @@ public class WarehouseJobBootstrap {
         return statements;
     }
 
+    private static boolean buildTaskLineageAndReport(WarehouseJobTask task) throws Exception {
+        // STEP1: 解析任务血缘
+        TaskLineage taskLineage = SqlParseUtils.parseSql(task);
+        // STEP2: 血缘上报
+
+        return true;
+    }
+
+
     private static void initializeJobNameAndExecute(TableEnvironment tableEnv, StatementSet statements, WarehouseJobTask task) {
         tableEnv.getConfig().getConfiguration().set(PipelineOptions.NAME, task.getName());
         statements.execute();
     }
 
     private static void run(String[] args) {
+        boolean reportSuccess = false;
         try {
             ParameterTool parameterTool = ParameterTool.fromArgs(args);
             String taskJson = Base64Utils.decode(parameterTool.get(TASK_CONFIG_KEY));
@@ -111,9 +123,14 @@ public class WarehouseJobBootstrap {
             initializeTaskMaterials(tableEnv, task);
             // STEP5: 注册计算逻辑
             StatementSet statements = initializeTaskCalculateLogic(tableEnv, task);
-            // STEP6: 提交任务
+            // STEP6: 解析血缘及上报
+            reportSuccess = buildTaskLineageAndReport(task);
+            // STEP7: 提交任务
             initializeJobNameAndExecute(tableEnv, statements, task);
         } catch (Exception e) {
+            if (reportSuccess) {
+                // TODO: 删除任务血缘
+            }
             throw new RuntimeException("failed execute job", e);
         }
     }
