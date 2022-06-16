@@ -5,6 +5,7 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+// 参考: Guava ByteArrayDataInput
 public class NoahArkByteArrayDataOutput implements DataOutput {
 
     final DataOutput output;
