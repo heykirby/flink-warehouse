@@ -1,4 +1,4 @@
-package com.sdu.streaming.warehouse.connector.redis;
+package com.sdu.streaming.warehouse.deserializer;
 
 import org.apache.flink.table.data.*;
 import org.apache.flink.table.types.logical.LogicalType;
@@ -7,8 +7,7 @@ import org.apache.flink.table.types.logical.RowType;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import static com.sdu.streaming.warehouse.connector.redis.NoahArkRedisArrayDataDeserializer.createRedisArrayDataDeserializer;
-import static com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRowDataDeserializer.createRedisRowDataDeserializer;
+import static com.sdu.streaming.warehouse.deserializer.NoahArkArrayElementDeserializer.createArrayElementDeserializer;
 
 public class NoahArkDeserializerUtils {
 
@@ -66,7 +65,7 @@ public class NoahArkDeserializerUtils {
 
     public static void serializeArrayData(ArrayData data, LogicalType elementType, DataOutput out) throws IOException {
         out.writeInt(data.size());
-        NoahArkRedisArrayDataDeserializer deserializer = createRedisArrayDataDeserializer(elementType);
+        NoahArkArrayElementDeserializer deserializer = createArrayElementDeserializer(elementType);
         for (int arrayIndex = 0; arrayIndex < data.size(); ++arrayIndex) {
             deserializer.serializer(data, arrayIndex, out);
         }
@@ -80,7 +79,7 @@ public class NoahArkDeserializerUtils {
     public static void serializeRowData(RowData data, RowType rowType, DataOutput out) throws IOException {
         int index = 0;
         for (RowType.RowField field : rowType.getFields()) {
-            NoahArkRedisRowDataDeserializer deserializer = createRedisRowDataDeserializer(field.getType());
+            NoahArkRowFieldDeserializer deserializer = NoahArkRowFieldDeserializer.createRowFieldDeserializer(field.getType());
             deserializer.serializer(data, index, out);
             index += 1;
         }

@@ -1,4 +1,4 @@
-package com.sdu.streaming.warehouse.connector.redis;
+package com.sdu.streaming.warehouse.deserializer;
 
 import org.apache.flink.table.data.*;
 import org.apache.flink.table.types.logical.ArrayType;
@@ -8,18 +8,17 @@ import org.apache.flink.table.types.logical.RowType;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import java.io.Serializable;
 
-import static com.sdu.streaming.warehouse.connector.redis.NoahArkDeserializerUtils.*;
+import static com.sdu.streaming.warehouse.deserializer.NoahArkDeserializerUtils.*;
 import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.*;
 
-public interface NoahArkRedisRowDataDeserializer extends Serializable {
+public interface NoahArkRowFieldDeserializer extends NoahArkObjectDeserializer<RowData> {
 
     void serializer(RowData data, int fieldPos, DataOutput out) throws IOException;
 
 
-    static NoahArkRedisRowDataDeserializer createRedisRowDataDeserializer(LogicalType fieldType) {
-        NoahArkRedisRowDataDeserializer deserializer;
+    static NoahArkRowFieldDeserializer createRowFieldDeserializer(LogicalType fieldType) {
+        NoahArkRowFieldDeserializer deserializer;
         // ordered by type root definition
         switch (fieldType.getTypeRoot()) {
             case CHAR:

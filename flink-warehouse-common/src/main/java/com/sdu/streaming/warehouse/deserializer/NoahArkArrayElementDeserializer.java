@@ -1,24 +1,23 @@
-package com.sdu.streaming.warehouse.connector.redis;
+package com.sdu.streaming.warehouse.deserializer;
 
 import org.apache.flink.table.data.*;
 import org.apache.flink.table.types.logical.ArrayType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.MapType;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.utils.LogicalTypeChecks;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import java.io.Serializable;
 
-import static com.sdu.streaming.warehouse.connector.redis.NoahArkDeserializerUtils.*;
-import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.*;
+import static com.sdu.streaming.warehouse.deserializer.NoahArkDeserializerUtils.*;
 
-public interface NoahArkRedisArrayDataDeserializer extends Serializable {
+public interface NoahArkArrayElementDeserializer extends NoahArkObjectDeserializer<ArrayData> {
 
     void serializer(ArrayData data, int arrayIndex, DataOutput out) throws IOException;
 
-    static NoahArkRedisArrayDataDeserializer createRedisArrayDataDeserializer(LogicalType elementType) {
-        final NoahArkRedisArrayDataDeserializer deserializer;
+    static NoahArkArrayElementDeserializer createArrayElementDeserializer(LogicalType elementType) {
+        final NoahArkArrayElementDeserializer deserializer;
         // ordered by type root definition
         switch (elementType.getTypeRoot()) {
             case CHAR:
@@ -42,8 +41,8 @@ public interface NoahArkRedisArrayDataDeserializer extends Serializable {
                 };
                 break;
             case DECIMAL:
-                final int decimalPrecision = getPrecision(elementType);
-                final int decimalScale = getScale(elementType);
+                final int decimalPrecision = LogicalTypeChecks.getPrecision(elementType);
+                final int decimalScale = LogicalTypeChecks.getScale(elementType);
                 deserializer = (data, arrayIndex, out) -> {
                     DecimalData value = data.getDecimal(arrayIndex, decimalPrecision, decimalScale);
                     serializeDecimalData(value, out);
@@ -91,7 +90,7 @@ public interface NoahArkRedisArrayDataDeserializer extends Serializable {
                 break;
             case TIMESTAMP_WITHOUT_TIME_ZONE:
             case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
-                final int timestampPrecision = getPrecision(elementType);
+                final int timestampPrecision = LogicalTypeChecks.getPrecision(elementType);
                 deserializer = (data, arrayIndex, out) -> {
                     TimestampData value = data.getTimestamp(arrayIndex, timestampPrecision);
                     serializeTimestampData(value, out);
@@ -118,7 +117,7 @@ public interface NoahArkRedisArrayDataDeserializer extends Serializable {
                 break;
             case ROW:
             case STRUCTURED_TYPE:
-                final int rowFieldCount = getFieldCount(elementType);
+                final int rowFieldCount = LogicalTypeChecks.getFieldCount(elementType);
                 deserializer = (data, arrayIndex, out) -> {
                     RowData value = data.getRow(arrayIndex, rowFieldCount);
                     RowType rowType = (RowType) elementType;

@@ -1,5 +1,9 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
+import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
+import io.lettuce.core.codec.ByteArrayCodec;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -24,6 +28,8 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     private final NoahArkRedisWriteOptions writeOptions;
     private final NoahArkRedisDataObjectConverter<T> converter;
 
+    private transient RedisClusterClient client;
+    private transient StatefulRedisClusterConnection<byte[], byte[]> connection;
     private transient NoahArkRedisBufferQueue<NoahArkRedisDataObject> bufferQueue;
     private transient ScheduledExecutorService executor;
     private transient ScheduledFuture scheduledFuture;
@@ -62,7 +68,9 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
                 TimeUnit.SECONDS
         );
 
-
+        client = RedisClusterClient.create(writeOptions.getClusterName());
+        connection = client.connect(new ByteArrayCodec());
+        connection.setAutoFlushCommands(false);
     }
 
     @Override
@@ -98,71 +106,71 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
 
     private void doFlush(List<NoahArkRedisDataObject> bufferData) {
         // TODO: 异步写入
-        lettuce.pipeline(command -> {
-            switch (writeOptions.getStructure()) {
-                case MAP:
-                    bufferData.forEach(kv -> {
-                        RowKind kind = kv.getOperation();
-                        byte[] key = kv.getRedisKey();
-                        switch (kind) {
-                            case INSERT:
-                            case UPDATE_AFTER:
-                                command.hmset(key, kv.getRedisValueAsMap());
-                                command.expire(key, writeOptions.getExpireSeconds());
-                                break;
+        final RedisAdvancedClusterCommands<byte[], byte[]> command = connection.sync();
+        switch (writeOptions.getStructure()) {
+            case MAP:
+                bufferData.forEach(kv -> {
+                    RowKind kind = kv.getOperation();
+                    byte[] key = kv.getRedisKey();
+                    switch (kind) {
+                        case INSERT:
+                        case UPDATE_AFTER:
+                            command.hmset(key, kv.getRedisValueAsMap());
+                            command.expire(key, writeOptions.getExpireSeconds());
+                            break;
 
-                            case DELETE:
-                            case UPDATE_BEFORE:
-                                command.del(key);
-                                break;
-                        }
-                    });
-                    break;
+                        case DELETE:
+                        case UPDATE_BEFORE:
+                            command.del(key);
+                            break;
+                    }
+                });
+                break;
 
-                case LIST:
-                    bufferData.forEach(kv -> {
-                        RowKind kind = kv.getOperation();
-                        byte[] key = kv.getRedisKey();
-                        switch (kind) {
-                            case INSERT:
-                            case UPDATE_AFTER:
-                                command.rpush(key, kv.getRedisValueAsList());
-                                command.expire(key, writeOptions.getExpireSeconds());
-                                break;
+            case LIST:
+                bufferData.forEach(kv -> {
+                    RowKind kind = kv.getOperation();
+                    byte[] key = kv.getRedisKey();
+                    switch (kind) {
+                        case INSERT:
+                        case UPDATE_AFTER:
+                            command.rpush(key, kv.getRedisValueAsList());
+                            command.expire(key, writeOptions.getExpireSeconds());
+                            break;
 
-                            case DELETE:
-                            case UPDATE_BEFORE:
-                                command.del(key);
-                                break;
-                        }
-                    });
-                    break;
+                        case DELETE:
+                        case UPDATE_BEFORE:
+                            command.del(key);
+                            break;
+                    }
+                });
+                break;
 
-                case STRING:
-                    bufferData.forEach(kv -> {
-                        RowKind kind = kv.getOperation();
-                        byte[] key = kv.getRedisKey();
-                        switch (kind) {
-                            case INSERT:
-                            case UPDATE_AFTER:
-                                command.set(key, kv.getRedisValue());
-                                command.expire(key, writeOptions.getExpireSeconds());
-                                break;
+            case STRING:
+                bufferData.forEach(kv -> {
+                    RowKind kind = kv.getOperation();
+                    byte[] key = kv.getRedisKey();
+                    switch (kind) {
+                        case INSERT:
+                        case UPDATE_AFTER:
+                            command.set(key, kv.getRedisValue());
+                            command.expire(key, writeOptions.getExpireSeconds());
+                            break;
 
-                            case DELETE:
-                            case UPDATE_BEFORE:
-                                command.del(key);
-                                break;
-                        }
-                    });
-                    break;
+                        case DELETE:
+                        case UPDATE_BEFORE:
+                            command.del(key);
+                            break;
+                    }
+                });
+                break;
 
-                default:
-                    failureThrowable.compareAndSet(null,
-                            new UnsupportedOperationException("unsupported storage structure: " + writeOptions.getStructure()));
+            default:
+                failureThrowable.compareAndSet(null,
+                        new UnsupportedOperationException("unsupported storage structure: " + writeOptions.getStructure()));
 
-            }
-        });
+        }
+        connection.flushCommands();
     }
 
     private void checkErrorAndRethrow() {
@@ -175,6 +183,10 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     @Override
     public void close() throws Exception {
         closed = true;
+        if (client != null) {
+            client.shutdownAsync();
+            connection.closeAsync();
+        }
         if (scheduledFuture != null) {
             scheduledFuture.cancel(false);
             if (executor != null) {

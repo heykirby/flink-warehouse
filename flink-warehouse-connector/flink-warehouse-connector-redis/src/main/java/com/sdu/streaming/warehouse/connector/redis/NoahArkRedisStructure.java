@@ -1,5 +1,6 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
+import com.sdu.streaming.warehouse.deserializer.NoahArkRowFieldDeserializer;
 import org.apache.flink.shaded.guava30.com.google.common.io.ByteArrayDataOutput;
 import org.apache.flink.table.data.RowData;
 
@@ -16,10 +17,10 @@ public enum NoahArkRedisStructure {
     STRING() {
 
         @Override
-        public byte[] serializeValue(RowData rowData, String[] fieldNames, NoahArkRedisRowDataDeserializer[] deserializers) throws IOException {
+        public byte[] serializeValue(RowData rowData, String[] fieldNames, NoahArkRowFieldDeserializer[] deserializers) throws IOException {
             ByteArrayDataOutput out = newDataOutput();
             for (int fieldPos = 0; fieldPos < rowData.getArity(); ++fieldPos) {
-                NoahArkRedisRowDataDeserializer deserializer = deserializers[fieldPos];
+                NoahArkRowFieldDeserializer deserializer = deserializers[fieldPos];
                 deserializer.serializer(rowData, fieldPos, out);
             }
             return out.toByteArray();
@@ -30,11 +31,11 @@ public enum NoahArkRedisStructure {
     LIST() {
 
         @Override
-        public byte[][] serializeValue(RowData rowData, String[] fieldNames, NoahArkRedisRowDataDeserializer[] deserializers) throws IOException {
+        public byte[][] serializeValue(RowData rowData, String[] fieldNames, NoahArkRowFieldDeserializer[] deserializers) throws IOException {
             byte[][] values = new byte[rowData.getArity()][];
             for (int fieldPos = 0; fieldPos < rowData.getArity(); ++fieldPos) {
                 ByteArrayDataOutput out = newDataOutput();
-                NoahArkRedisRowDataDeserializer deserializer = deserializers[fieldPos];
+                NoahArkRowFieldDeserializer deserializer = deserializers[fieldPos];
                 deserializer.serializer(rowData, fieldPos, out);
                 values[fieldPos] = out.toByteArray();
             }
@@ -46,12 +47,12 @@ public enum NoahArkRedisStructure {
     MAP() {
 
         @Override
-        public Map<byte[], byte[]> serializeValue(RowData rowData, String[] fieldNames, NoahArkRedisRowDataDeserializer[] deserializers) throws IOException {
+        public Map<byte[], byte[]> serializeValue(RowData rowData, String[] fieldNames, NoahArkRowFieldDeserializer[] deserializers) throws IOException {
             Map<byte[], byte[]> values = new HashMap<>();
             int fieldCount = rowData.getArity();
             for (int fieldPos = 0; fieldPos < fieldCount; ++fieldPos) {
                 ByteArrayDataOutput out = newDataOutput();
-                NoahArkRedisRowDataDeserializer deserializer = deserializers[fieldPos];
+                NoahArkRowFieldDeserializer deserializer = deserializers[fieldPos];
                 deserializer.serializer(rowData, fieldPos, out);
                 values.put(
                         fieldNames[fieldPos].getBytes(StandardCharsets.UTF_8),
@@ -66,21 +67,21 @@ public enum NoahArkRedisStructure {
 
     NoahArkRedisStructure() { }
 
-    public byte[] serializeKey(RowData rowData, String prefix, NoahArkRedisRowDataDeserializer[] keyDeserializers) throws IOException {
+    public byte[] serializeKey(RowData rowData, String prefix, NoahArkRowFieldDeserializer[] keyDeserializers) throws IOException {
         return serialize(rowData, prefix, keyDeserializers);
     }
 
     public abstract <T> T serializeValue(RowData rowData,
                                          String[] fieldNames,
-                                         NoahArkRedisRowDataDeserializer[] deserializer) throws IOException;
+                                         NoahArkRowFieldDeserializer[] deserializer) throws IOException;
 
-    protected byte[] serialize(RowData rowData, String prefix, NoahArkRedisRowDataDeserializer[] deserializers) throws IOException {
+    protected byte[] serialize(RowData rowData, String prefix, NoahArkRowFieldDeserializer[] deserializers) throws IOException {
         ByteArrayDataOutput out = newDataOutput();
         byte[] prefixBytes = prefix.getBytes(StandardCharsets.UTF_8);
         out.writeInt(prefixBytes.length);
         out.write(prefixBytes);
         for (int fieldPos = 0; fieldPos < rowData.getArity(); ++fieldPos) {
-            NoahArkRedisRowDataDeserializer deserializer = deserializers[fieldPos];
+            NoahArkRowFieldDeserializer deserializer = deserializers[fieldPos];
             deserializer.serializer(rowData, fieldPos, out);
         }
         return out.toByteArray();

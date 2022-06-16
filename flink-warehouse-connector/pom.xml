@@ -30,6 +30,12 @@
             <artifactId>flink-table-api-java-bridge_2.11</artifactId>
             <version>${flink.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.sdu.streaming</groupId>
+            <artifactId>flink-warehouse-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
