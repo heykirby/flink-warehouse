@@ -2,15 +2,12 @@ package com.sdu.streaming.warehouse.connector.redis;
 
 import com.sdu.streaming.warehouse.deserializer.NoahArkRowFieldDeserializer;
 import com.sdu.streaming.warehouse.utils.NoahArkByteArrayDataOutput;
-import org.apache.flink.shaded.guava30.com.google.common.io.ByteArrayDataOutput;
 import org.apache.flink.table.data.RowData;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.apache.flink.shaded.guava30.com.google.common.io.ByteStreams.newDataOutput;
 
 public enum NoahArkRedisStructure {
 
@@ -78,7 +75,7 @@ public enum NoahArkRedisStructure {
                                          NoahArkRowFieldDeserializer[] deserializer) throws IOException;
 
     protected byte[] serialize(RowData rowData, String prefix, NoahArkRowFieldDeserializer[] deserializers) throws IOException {
-        ByteArrayDataOutput out = newDataOutput();
+        NoahArkByteArrayDataOutput out = new NoahArkByteArrayDataOutput();
         byte[] prefixBytes = prefix.getBytes(StandardCharsets.UTF_8);
         out.writeInt(prefixBytes.length);
         out.write(prefixBytes);
