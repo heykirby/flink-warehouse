@@ -107,7 +107,7 @@ public class WarehouseJobBootstrap {
         statements.execute();
     }
 
-    private static void run(String[] args) {
+    public static void run(String[] args) {
         boolean reportSuccess = false;
         try {
             ParameterTool parameterTool = ParameterTool.fromArgs(args);

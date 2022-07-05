@@ -20,4 +20,10 @@ public class Base64Utils {
         return new String(bytes, Charset.forName(DEFAULT_CHARSET));
     }
 
+    public static String encode(String plainText) throws IOException {
+        if (plainText == null || plainText.isEmpty()) {
+            throw new IOException("plain text empty");
+        }
+        return Base64.getEncoder().encodeToString(plainText.getBytes(Charset.forName(DEFAULT_CHARSET)));
+    }
 }
