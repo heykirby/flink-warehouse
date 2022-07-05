@@ -101,6 +101,10 @@ public class WarehouseJobBootstrap {
         return true;
     }
 
+    private static boolean deleteTaskLineage(WarehouseJobTask task) {
+        // TODO: delete task lineage
+        return false;
+    }
 
     private static void initializeJobNameAndExecute(TableEnvironment tableEnv, StatementSet statements, WarehouseJobTask task) {
         tableEnv.getConfig().getConfiguration().set(PipelineOptions.NAME, task.getName());
@@ -109,10 +113,11 @@ public class WarehouseJobBootstrap {
 
     public static void run(String[] args) {
         boolean reportSuccess = false;
+        WarehouseJobTask task = null;
         try {
             ParameterTool parameterTool = ParameterTool.fromArgs(args);
             String taskJson = Base64Utils.decode(parameterTool.get(TASK_CONFIG_KEY));
-            WarehouseJobTask task = JsonUtils.fromJson(taskJson, WarehouseJobTask.class);
+            task = JsonUtils.fromJson(taskJson, WarehouseJobTask.class);
             // STEP1: 校验参数
             checkStreamingJobParameters(task);
             // STEP2: 环境配置
@@ -129,7 +134,9 @@ public class WarehouseJobBootstrap {
             initializeJobNameAndExecute(tableEnv, statements, task);
         } catch (Exception e) {
             if (reportSuccess) {
-                // TODO: 删除任务血缘
+                if (!deleteTaskLineage(task)) {
+                    System.err.println("failed delete task lineage.");
+                }
             }
             throw new RuntimeException("failed execute job", e);
         }

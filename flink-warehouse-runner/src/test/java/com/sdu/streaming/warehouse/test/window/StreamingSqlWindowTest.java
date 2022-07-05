@@ -10,10 +10,12 @@ import java.util.List;
 public class StreamingSqlWindowTest extends StreamingSqlSqlTest {
 
     @Before
+    @Override
     public void setup() {
+        super.setup();
         List<String> materials = Lists.newArrayList(task.getMaterials());
         materials.add(
-                "CREATE TABLE t2 (window_start TIMESTAMP_LTZ(3), window_end TIMESTAMP_LTZ(3), price) WITH ('connector' = 'print')"
+                "CREATE TABLE t2 (window_start TIMESTAMP_LTZ(3), window_end TIMESTAMP_LTZ(3), price DOUBLE) WITH ('connector' = 'print')"
         );
         task.setMaterials(materials);
     }
