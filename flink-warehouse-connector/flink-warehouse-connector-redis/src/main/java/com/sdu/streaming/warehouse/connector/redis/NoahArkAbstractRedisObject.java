@@ -4,12 +4,12 @@ import java.util.Map;
 
 import org.apache.flink.types.RowKind;
 
-public abstract class NoahArkAbstractRedisDataObject implements NoahArkRedisDataObject {
+public abstract class NoahArkAbstractRedisObject implements NoahArkRedisObject {
 
     private final RowKind kind;
     private final byte[] keys;
 
-    public NoahArkAbstractRedisDataObject(RowKind kind, byte[] keys) {
+    public NoahArkAbstractRedisObject(RowKind kind, byte[] keys) {
         this.kind = kind;
         this.keys = keys;
     }

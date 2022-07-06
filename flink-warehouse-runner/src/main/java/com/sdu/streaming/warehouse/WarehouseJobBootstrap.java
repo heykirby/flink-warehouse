@@ -15,13 +15,18 @@ import org.apache.flink.table.api.internal.TableEnvironmentImpl;
 import org.apache.flink.table.api.internal.TableEnvironmentInternal;
 import org.apache.flink.table.operations.Operation;
 import org.apache.flink.table.operations.command.SetOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
 
+import static com.sdu.streaming.warehouse.utils.JsonUtils.toJson;
 import static com.sdu.streaming.warehouse.utils.UserFunctionDiscovery.registerBuildInUserFunction;
 
 public class WarehouseJobBootstrap {
+
+    private static final Logger LOG = LoggerFactory.getLogger(WarehouseJobBootstrap.class);
 
     private static final String TASK_CONFIG_KEY = "taskConfig";
     private static final String DEFAULT_JOB_NAME = "Warehouse-Job";
@@ -94,10 +99,13 @@ public class WarehouseJobBootstrap {
     }
 
     private static boolean buildTaskLineageAndReport(WarehouseJobTask task) throws Exception {
+        if (!task.isReportLineage()) {
+            return false;
+        }
         // STEP1: 解析任务血缘
         TaskLineage taskLineage = SqlParseUtils.parseSql(task);
         // STEP2: 血缘上报
-
+        LOG.info("Task({}) lineage: {}", task.getName(), toJson(taskLineage));
         return true;
     }
 

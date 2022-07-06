@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.apache.flink.types.RowKind;
 
-public class NoahArkRedisMapObject extends NoahArkAbstractRedisDataObject {
+public class NoahArkRedisMapObject extends NoahArkAbstractRedisObject {
 
     private final Map<byte[], byte[]> values;
 

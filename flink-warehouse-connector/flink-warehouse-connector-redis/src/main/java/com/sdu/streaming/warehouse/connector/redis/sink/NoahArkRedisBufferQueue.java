@@ -1,4 +1,4 @@
-package com.sdu.streaming.warehouse.connector.redis;
+package com.sdu.streaming.warehouse.connector.redis.sink;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 // TODO: 若存储慢有内存爆满风险
-// TODO: Disruptor 框架
 public class NoahArkRedisBufferQueue<T> implements Serializable {
 
     private volatile boolean flushing;

@@ -16,9 +16,11 @@ public class StreamingSqlSqlTest {
     public void setup() {
         task = new WarehouseJobTask();
         task.setName("streaming-warehouse-sql-task");
+        task.setStreaming(true);
+        task.setReportLineage(false);
         task.setMaterials(
                 Lists.newArrayList(
-                        "CREATE TABLE t1 (pid BIGINT, name STRING, PRICE DOUBLE, ptime BIGINT, ts AS TO_TIMESTAMP_LTZ(ptime, 3), WATERMARK FOR ts AS ts - INTERVAL '5' SECONDS ) WITH ('connector' = 'datagen')"
+                        "CREATE TABLE t1 (pid BIGINT, name STRING, price DOUBLE, ptime BIGINT, ts AS TO_TIMESTAMP_LTZ(ptime, 3), WATERMARK FOR ts AS ts - INTERVAL '5' SECONDS ) WITH ('connector' = 'datagen')"
                 )
         );
     }

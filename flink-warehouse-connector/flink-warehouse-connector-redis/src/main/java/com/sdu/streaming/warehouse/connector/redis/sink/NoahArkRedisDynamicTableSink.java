@@ -1,5 +1,6 @@
-package com.sdu.streaming.warehouse.connector.redis;
+package com.sdu.streaming.warehouse.connector.redis.sink;
 
+import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRowDataRuntimeConverter;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
@@ -17,7 +18,7 @@ public class NoahArkRedisDynamicTableSink implements DynamicTableSink {
     @Override
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
         NoahArkRedisSinkFunction<RowData> sinkFunction = new NoahArkRedisSinkFunction<>(writeOptions,
-                new NoahArkRedisRowDataConverter(writeOptions));
+                new NoahArkRedisRowDataRuntimeConverter(writeOptions));
         return SinkFunctionProvider.of(sinkFunction, writeOptions.getParallelism());
     }
 
@@ -39,6 +40,6 @@ public class NoahArkRedisDynamicTableSink implements DynamicTableSink {
 
     @Override
     public String asSummaryString() {
-        return "Redis";
+        return "Kwai Redis";
     }
 }

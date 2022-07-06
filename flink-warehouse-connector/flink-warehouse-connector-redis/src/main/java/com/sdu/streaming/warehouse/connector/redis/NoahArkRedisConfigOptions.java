@@ -15,17 +15,49 @@ public class NoahArkRedisConfigOptions implements Serializable {
                     .noDefaultValue()
                     .withDescription("redis cluster name");
 
-    public static final ConfigOption<NoahArkRedisStructure> REDIS_STORAGE_STRUCTURE =
-            ConfigOptions.key("redis-storage-structure")
-                    .enumType(NoahArkRedisStructure.class)
-                    .defaultValue(NoahArkRedisStructure.MAP)
-                    .withDescription("redis data storage structure");
+    public static final ConfigOption<NoahArkRedisDataType> REDIS_STORAGE_TYPE =
+            ConfigOptions.key("redis-storage-type")
+                    .enumType(NoahArkRedisDataType.class)
+                    .defaultValue(NoahArkRedisDataType.STRING)
+                    .withDescription("redis data storage type, default: string");
 
     public static final ConfigOption<String> REDIS_KEY_PREFIX =
             ConfigOptions.key("redis-key-prefix")
                     .stringType()
                     .defaultValue("")
                     .withDescription("redis key prefix, default: empty");
+
+
+    // Read
+    public static final ConfigOption<Boolean> REDIS_READ_ASYNCABLE =
+            ConfigOptions.key("redis-read-asyncable")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription("support async lookup join redis, default: false.");
+
+    public static final ConfigOption<Integer> REDIS_READ_RETRIES =
+            ConfigOptions.key("redis-read-retries")
+                    .intType()
+                    .defaultValue(2)
+                    .withDescription("retry read when failed, default: 2");
+
+    public static final ConfigOption<Boolean> REDIS_READ_CACHEABLE =
+            ConfigOptions.key("redis-read-cacheable")
+                    .booleanType()
+                    .defaultValue(true)
+                    .withDescription("support redis data cacheable, default: true");
+
+    public static final ConfigOption<Integer> REDIS_READ_CACHE_SIZE =
+            ConfigOptions.key("redis-read-cache-size")
+                    .intType()
+                    .defaultValue(64)
+                    .withDescription("redis data cache size, default: 64");
+
+    public static final ConfigOption<Long> REDIS_READ_CACHE_EXPIRE =
+            ConfigOptions.key("redis-read-cache-expire")
+                    .longType()
+                    .defaultValue(10 * 60 * 1000L)
+                    .withDescription("redis cache expire time, default: 10 * 60 * 1000L ms");
 
     // Write
     public static final ConfigOption<Integer> REDIS_WRITE_BATCH_SIZE =

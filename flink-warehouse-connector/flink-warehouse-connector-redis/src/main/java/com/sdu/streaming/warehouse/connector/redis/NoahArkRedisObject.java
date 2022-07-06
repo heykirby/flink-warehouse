@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.apache.flink.types.RowKind;
 
-public interface NoahArkRedisDataObject {
+public interface NoahArkRedisObject {
 
     RowKind getOperation();
 

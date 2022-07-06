@@ -2,7 +2,7 @@ package com.sdu.streaming.warehouse.connector.redis;
 
 import org.apache.flink.types.RowKind;
 
-public class NoahArkRedisListObject extends NoahArkAbstractRedisDataObject {
+public class NoahArkRedisListObject extends NoahArkAbstractRedisObject {
 
     private final byte[][] values;
 

@@ -1,5 +1,7 @@
-package com.sdu.streaming.warehouse.connector.redis;
+package com.sdu.streaming.warehouse.connector.redis.sink;
 
+import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisObject;
+import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRuntimeConverter;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
@@ -21,16 +23,17 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+
 public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements CheckpointedFunction {
 
     private static final Logger LOG = LoggerFactory.getLogger(NoahArkRedisSinkFunction.class);
 
     private final NoahArkRedisWriteOptions writeOptions;
-    private final NoahArkRedisDataObjectConverter<T> converter;
+    private final NoahArkRedisRuntimeConverter<T> converter;
 
     private transient RedisClusterClient client;
     private transient StatefulRedisClusterConnection<byte[], byte[]> connection;
-    private transient NoahArkRedisBufferQueue<NoahArkRedisDataObject> bufferQueue;
+    private transient NoahArkRedisBufferQueue<NoahArkRedisObject> bufferQueue;
     private transient ScheduledExecutorService executor;
     private transient ScheduledFuture scheduledFuture;
 
@@ -38,7 +41,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
 
     private final AtomicReference<Throwable> failureThrowable = new AtomicReference<>();
 
-    public NoahArkRedisSinkFunction(NoahArkRedisWriteOptions writeOptions, NoahArkRedisDataObjectConverter<T> converter) {
+    public NoahArkRedisSinkFunction(NoahArkRedisWriteOptions writeOptions, NoahArkRedisRuntimeConverter<T> converter) {
         this.writeOptions = writeOptions;
         this.converter = converter;
     }
@@ -47,7 +50,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     public void open(Configuration configuration) throws Exception {
         LOG.info("task[{} / {}] start initialize redis connection",
                 getRuntimeContext().getIndexOfThisSubtask(), getRuntimeContext().getNumberOfParallelSubtasks());
-        converter.open(configuration);
+        converter.open();
         bufferQueue = new NoahArkRedisBufferQueue<>();
         executor = Executors.newScheduledThreadPool(1, new ExecutorThreadFactory("redis-sink-flusher"));
         scheduledFuture = executor.scheduleWithFixedDelay(
@@ -104,10 +107,10 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
         checkErrorAndRethrow();
     }
 
-    private void doFlush(List<NoahArkRedisDataObject> bufferData) {
+    private void doFlush(List<NoahArkRedisObject> bufferData) {
         // TODO: 异步写入
         final RedisAdvancedClusterCommands<byte[], byte[]> command = connection.sync();
-        switch (writeOptions.getStructure()) {
+        switch (writeOptions.getRedisDataType()) {
             case MAP:
                 bufferData.forEach(kv -> {
                     RowKind kind = kv.getOperation();
@@ -167,7 +170,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
 
             default:
                 failureThrowable.compareAndSet(null,
-                        new UnsupportedOperationException("unsupported storage structure: " + writeOptions.getStructure()));
+                        new UnsupportedOperationException("unsupported storage structure: " + writeOptions.getRedisDataType()));
 
         }
         connection.flushCommands();
