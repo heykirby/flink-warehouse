@@ -14,7 +14,6 @@ public class NoahArkRedisWriteOptions extends NoahArkRedisOptions {
     private final int parallelism;
 
     public NoahArkRedisWriteOptions(RowType rowType,
-                                    int[] primaryKeyIndexes,
                                     String keyPrefix,
                                     NoahArkRedisDataType redisDataType,
                                     String clusterName,
@@ -22,7 +21,7 @@ public class NoahArkRedisWriteOptions extends NoahArkRedisOptions {
                                     int bufferFlushInterval,
                                     long expireSeconds,
                                     int parallelism) {
-        super(rowType, primaryKeyIndexes, keyPrefix, redisDataType);
+        super(rowType, keyPrefix, redisDataType);
         this.clusterName = clusterName;
         this.bufferFlushMaxSize = bufferFlushMaxSize;
         this.bufferFlushInterval = bufferFlushInterval;

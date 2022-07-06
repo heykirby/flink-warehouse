@@ -2,7 +2,9 @@ package com.sdu.streaming.warehouse.connector.redis;
 
 import com.sdu.streaming.warehouse.deserializer.NoahArkDataDeserializer;
 import com.sdu.streaming.warehouse.deserializer.NoahArkDataSerializer;
+import com.sdu.streaming.warehouse.utils.NoahArkByteArrayDataInput;
 import com.sdu.streaming.warehouse.utils.NoahArkByteArrayDataOutput;
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 
@@ -33,7 +35,18 @@ public class NoahArkRedisListTypeSerializer extends NoahArkAbstractRedisTypeSeri
 
     @Override
     public RowData deserializeValue(byte[][] bytes, String[] fieldNames, NoahArkDataDeserializer[] rowFieldDeserializers) throws IOException {
-        return null;
+        Preconditions.checkArgument(bytes.length == fieldNames.length);
+        Preconditions.checkArgument(fieldNames.length == rowFieldDeserializers.length);
+
+        GenericRowData rowData = new GenericRowData(fieldNames.length);
+        for (int pos = 0; pos < fieldNames.length; ++pos) {
+            // TODO: 优化频繁实例化
+            NoahArkByteArrayDataInput input = new NoahArkByteArrayDataInput(bytes[pos]);
+            Object fieldValue = rowFieldDeserializers[pos].deserializer(input);
+            rowData.setField(pos, fieldValue);
+        }
+
+        return rowData;
     }
 
 }

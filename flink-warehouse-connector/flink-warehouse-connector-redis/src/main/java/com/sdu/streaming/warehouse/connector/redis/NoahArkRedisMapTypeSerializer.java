@@ -2,7 +2,9 @@ package com.sdu.streaming.warehouse.connector.redis;
 
 import com.sdu.streaming.warehouse.deserializer.NoahArkDataDeserializer;
 import com.sdu.streaming.warehouse.deserializer.NoahArkDataSerializer;
+import com.sdu.streaming.warehouse.utils.NoahArkByteArrayDataInput;
 import com.sdu.streaming.warehouse.utils.NoahArkByteArrayDataOutput;
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 
@@ -41,6 +43,18 @@ public class NoahArkRedisMapTypeSerializer extends NoahArkAbstractRedisTypeSeria
 
     @Override
     public RowData deserializeValue(Map<byte[], byte[]> bytes, String[] fieldNames, NoahArkDataDeserializer[] rowFieldDeserializers) throws IOException {
-        return null;
+        Preconditions.checkArgument(bytes.keySet().size() == fieldNames.length);
+        Preconditions.checkArgument(fieldNames.length == rowFieldDeserializers.length);
+
+        GenericRowData rowData = new GenericRowData(fieldNames.length);
+        for (int pos = 0; pos < fieldNames.length; ++pos) {
+            byte[] key = fieldNames[pos].getBytes(StandardCharsets.UTF_8);
+            byte[] value = bytes.get(key);
+            // TODO: 优化频繁实例化
+            NoahArkByteArrayDataInput input = new NoahArkByteArrayDataInput(value);
+            Object fieldValue = rowFieldDeserializers[pos].deserializer(input);
+            rowData.setField(pos, fieldValue);
+        }
+        return rowData;
     }
 }

@@ -9,16 +9,21 @@ import org.apache.flink.types.RowKind;
 
 public class NoahArkRedisDynamicTableSink implements DynamicTableSink {
 
+    private final int[][] primaryKeyIndexes;
     private final NoahArkRedisWriteOptions writeOptions;
 
-    public NoahArkRedisDynamicTableSink(NoahArkRedisWriteOptions writeOptions) {
+    public NoahArkRedisDynamicTableSink(NoahArkRedisWriteOptions writeOptions, int[] primaryKeyIndexes) {
         this.writeOptions = writeOptions;
+        this.primaryKeyIndexes = new int[primaryKeyIndexes.length][2];
+        for (int i = 0; i < primaryKeyIndexes.length; ++i) {
+            this.primaryKeyIndexes[i] = new int[] {primaryKeyIndexes[i], primaryKeyIndexes[i]};
+        }
     }
 
     @Override
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
         NoahArkRedisSinkFunction<RowData> sinkFunction = new NoahArkRedisSinkFunction<>(writeOptions,
-                new NoahArkRedisRowDataRuntimeConverter(writeOptions));
+                new NoahArkRedisRowDataRuntimeConverter(writeOptions, primaryKeyIndexes));
         return SinkFunctionProvider.of(sinkFunction, writeOptions.getParallelism());
     }
 
@@ -35,11 +40,15 @@ public class NoahArkRedisDynamicTableSink implements DynamicTableSink {
 
     @Override
     public DynamicTableSink copy() {
-        return new NoahArkRedisDynamicTableSink(writeOptions);
+        int[] keyIndexes = new int[primaryKeyIndexes.length];
+        for (int i = 0; i < primaryKeyIndexes.length; ++i) {
+            keyIndexes[i] = primaryKeyIndexes[i][0];
+        }
+        return new NoahArkRedisDynamicTableSink(writeOptions, keyIndexes);
     }
 
     @Override
     public String asSummaryString() {
-        return "Kwai Redis";
+        return "Redis";
     }
 }

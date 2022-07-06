@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
-public class KwaiRedisTableFunction extends TableFunction<RowData> {
+public class NoahArkRedisTableFunction extends TableFunction<RowData> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KwaiRedisTableFunction.class);
+    private static final Logger LOG = LoggerFactory.getLogger(NoahArkRedisTableFunction.class);
 
     private final NoahArkRedisReadOptions readOptions;
 
@@ -27,7 +27,7 @@ public class KwaiRedisTableFunction extends TableFunction<RowData> {
     private transient StatefulRedisClusterConnection<byte[], byte[]> connection;
     private transient Cache<RowData, RowData> cache;
 
-    public KwaiRedisTableFunction(NoahArkRedisRuntimeConverter<RowData> converter, NoahArkRedisReadOptions readOptions) {
+    public NoahArkRedisTableFunction(NoahArkRedisRuntimeConverter<RowData> converter, NoahArkRedisReadOptions readOptions) {
         this.converter = converter;
         this.readOptions = readOptions;
     }

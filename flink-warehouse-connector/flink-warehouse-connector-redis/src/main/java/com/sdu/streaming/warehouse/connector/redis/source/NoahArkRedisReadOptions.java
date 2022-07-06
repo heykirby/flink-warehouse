@@ -16,8 +16,8 @@ public class NoahArkRedisReadOptions extends NoahArkRedisOptions {
     private final long cacheMaxSize;
     private final long cacheExpireMs;
 
-    public NoahArkRedisReadOptions(RowType rowType, int[] primaryKeyIndexes, String keyPrefix, NoahArkRedisDataType redisDataType, String clusterName, boolean async, int maxRetryTimes, boolean cacheable, long cacheMaxSize, long cacheExpireMs) {
-        super(rowType, primaryKeyIndexes, keyPrefix, redisDataType);
+    public NoahArkRedisReadOptions(RowType rowType, String keyPrefix, NoahArkRedisDataType redisDataType, String clusterName, boolean async, int maxRetryTimes, boolean cacheable, long cacheMaxSize, long cacheExpireMs) {
+        super(rowType, keyPrefix, redisDataType);
         this.clusterName = clusterName;
         this.async = async;
         this.maxRetryTimes = maxRetryTimes;

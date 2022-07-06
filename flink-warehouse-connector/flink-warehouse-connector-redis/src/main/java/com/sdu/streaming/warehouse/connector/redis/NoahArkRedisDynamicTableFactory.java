@@ -50,8 +50,9 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
         helper.validate();
 
         NoahArkRedisWriteOptions writeOptions = getRedisWriteOptions(helper.getOptions(), context);
+        int[] primaryKeyIndexes = getPrimaryKeyIndexes(context.getCatalogTable().getResolvedSchema());
 
-        return new NoahArkRedisDynamicTableSink(writeOptions);
+        return new NoahArkRedisDynamicTableSink(writeOptions, primaryKeyIndexes);
     }
 
     @Override
@@ -83,11 +84,9 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
 
     private static NoahArkRedisReadOptions getRedisReadOptions(ReadableConfig tableOption, Context context) {
         DataType rowDataType =  context.getCatalogTable().getSchema().toPhysicalRowDataType();
-        int[] primaryKeyIndexes = getPrimaryKeyIndexes(context.getCatalogTable().getResolvedSchema());
 
         return new NoahArkRedisReadOptions(
                 (RowType) rowDataType.getLogicalType(),
-                primaryKeyIndexes,
                 tableOption.get(REDIS_KEY_PREFIX),
                 tableOption.get(REDIS_STORAGE_TYPE),
                 tableOption.get(REDIS_CLUSTER),
@@ -101,11 +100,9 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
 
     private static NoahArkRedisWriteOptions getRedisWriteOptions(ReadableConfig tableOption, Context context) {
         DataType rowDataType =  context.getCatalogTable().getSchema().toPhysicalRowDataType();
-        int[] primaryKeyIndexes = getPrimaryKeyIndexes(context.getCatalogTable().getResolvedSchema());
 
         return new NoahArkRedisWriteOptions(
                 (RowType) rowDataType.getLogicalType(),
-                primaryKeyIndexes,
                 tableOption.get(REDIS_KEY_PREFIX),
                 tableOption.get(REDIS_STORAGE_TYPE),
                 tableOption.get(REDIS_CLUSTER),

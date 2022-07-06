@@ -4,6 +4,7 @@ import com.sdu.streaming.warehouse.deserializer.NoahArkDataDeserializer;
 import com.sdu.streaming.warehouse.deserializer.NoahArkDataSerializer;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.io.IOException;
@@ -13,10 +14,19 @@ import java.util.Map;
 import static com.sdu.streaming.warehouse.connector.redis.NoahArkRedisListTypeSerializer.REDIS_LIST_DESERIALIZER;
 import static com.sdu.streaming.warehouse.connector.redis.NoahArkRedisMapTypeSerializer.REDIS_MAP_DESERIALIZER;
 import static com.sdu.streaming.warehouse.connector.redis.NoahArkRedisStringTypeSerializer.REDIS_STRING_DESERIALIZER;
+import static com.sdu.streaming.warehouse.deserializer.NoahArkDataDeserializer.createDataDeserializer;
+import static com.sdu.streaming.warehouse.deserializer.NoahArkDataSerializer.createDataSerializer;
 
 
 public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeConverter<RowData> {
 
+    // read:
+    //  primaryKeyIndexes[i][0]: 关联条件索引位置
+    //  primaryKeyIndexes[i][1]: RowType中索引位置
+    // write:
+    //  primaryKeyIndexes[i][0]: RowType中索引位置
+    //  primaryKeyIndexes[i][1]: RowType中索引位置
+    private final int[][] primaryKeyIndexes;
     private final NoahArkRedisOptions redisOptions;
 
     // primary key
@@ -30,24 +40,39 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
     private transient NoahArkDataDeserializer[] rowFieldDeserializers;
     private transient String[] fieldNames;
 
-    public NoahArkRedisRowDataRuntimeConverter(NoahArkRedisOptions redisOptions) {
+    public NoahArkRedisRowDataRuntimeConverter(NoahArkRedisOptions redisOptions, int[][] primaryKeyIndexes) {
         this.redisOptions = redisOptions;
+        this.primaryKeyIndexes = primaryKeyIndexes;
     }
 
     @Override
     public void open() {
         RowType rowType = redisOptions.getRowType();
-        int[] primaryKeyIndexes = redisOptions.getPrimaryKeyIndexes();
-        // TODO: 读写不同
-//        rowKeySerializers = new NoahArkDataSerializer[primaryKeyIndexes.length];
-//        for (int index = 0; index < primaryKeyIndexes.length; ++index) {
-//            int primaryKeyFieldPos = primaryKeyIndexes[index];
-//            rowKeySerializers[index] = createDataSerializer(rowType.getTypeAt(primaryKeyFieldPos));
-//        }
-//
-//        rowDataSerializer = createDataSerializer(rowType);
-//        rowDataDeserializer = createDataDeserializer(rowType);
-//        fieldNames = redisOptions.getRowType().getFieldNames().toArray(new String[0]);
+
+        // primary key
+        rowKeySerializers = new NoahArkDataSerializer[primaryKeyIndexes.length];
+        rowKeyFieldGetters = new RowData.FieldGetter[primaryKeyIndexes.length];
+        for (int i = 0; i < primaryKeyIndexes.length; ++i) {
+            LogicalType rowKeyType = rowType.getTypeAt(primaryKeyIndexes[i][1]);
+            rowKeySerializers[i] = createDataSerializer(rowKeyType);
+            rowKeyFieldGetters[i] = RowData.createFieldGetter(rowKeyType, primaryKeyIndexes[i][0]);
+        }
+
+        // write
+        rowFieldSerializers = new NoahArkDataSerializer[rowType.getFieldCount()];
+        rowFieldGetters = new RowData.FieldGetter[rowType.getFieldCount()];
+        for (int i = 0; i < rowType.getFieldCount(); ++i) {
+            rowFieldSerializers[i] = createDataSerializer(rowType.getTypeAt(i));
+            rowFieldGetters[i] = RowData.createFieldGetter(rowType.getTypeAt(i), i);
+        }
+
+        // read
+        rowFieldDeserializers = new NoahArkDataDeserializer[rowType.getFieldCount()];
+        for (int i = 0; i < rowType.getFieldCount(); ++i) {
+            rowFieldDeserializers[i] = createDataDeserializer(rowType.getTypeAt(i));
+        }
+
+        fieldNames = rowType.getFieldNames().toArray(new String[0]);
     }
 
     @Override
