@@ -1,5 +1,6 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
+import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisDataType;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.io.Serializable;

@@ -1,5 +1,6 @@
-package com.sdu.streaming.warehouse.connector.redis;
+package com.sdu.streaming.warehouse.connector.redis.entry;
 
+import com.sdu.streaming.warehouse.connector.redis.NoahArkAbstractRedisObject;
 import org.apache.flink.types.RowKind;
 
 public class NoahArkRedisListObject extends NoahArkAbstractRedisObject {

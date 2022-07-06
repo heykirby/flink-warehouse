@@ -1,5 +1,6 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
+import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisObject;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import org.apache.flink.table.data.RowData;
 

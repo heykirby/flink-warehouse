@@ -1,4 +1,4 @@
-package com.sdu.streaming.warehouse.connector.redis;
+package com.sdu.streaming.warehouse.connector.redis.entry;
 
 public enum NoahArkRedisDataType {
 

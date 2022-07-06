@@ -1,6 +1,6 @@
 package com.sdu.streaming.warehouse.connector.redis.sink;
 
-import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisDataType;
+import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisDataType;
 import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisOptions;
 import org.apache.flink.table.types.logical.RowType;
 

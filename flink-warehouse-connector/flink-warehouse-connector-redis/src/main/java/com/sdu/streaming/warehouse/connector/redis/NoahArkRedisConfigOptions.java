@@ -2,6 +2,7 @@ package com.sdu.streaming.warehouse.connector.redis;
 
 import java.io.Serializable;
 
+import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisDataType;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 

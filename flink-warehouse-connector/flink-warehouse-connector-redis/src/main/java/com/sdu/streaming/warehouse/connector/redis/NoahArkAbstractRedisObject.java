@@ -2,6 +2,7 @@ package com.sdu.streaming.warehouse.connector.redis;
 
 import java.util.Map;
 
+import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisObject;
 import org.apache.flink.types.RowKind;
 
 public abstract class NoahArkAbstractRedisObject implements NoahArkRedisObject {

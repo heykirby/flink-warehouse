@@ -1,6 +1,6 @@
 package com.sdu.streaming.warehouse.connector.redis.sink;
 
-import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisObject;
+import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisObject;
 import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRuntimeConverter;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
