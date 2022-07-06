@@ -26,7 +26,7 @@ import static org.apache.flink.table.factories.FactoryUtil.createTableFactoryHel
 
 public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
-    private static final String IDENTIFIER = "ks_redis";
+    private static final String IDENTIFIER = "redis";
 
     @Override
     public String factoryIdentifier() {
