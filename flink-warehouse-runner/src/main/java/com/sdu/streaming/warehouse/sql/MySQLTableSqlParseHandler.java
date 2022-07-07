@@ -11,14 +11,14 @@ import java.util.Set;
 import static com.sdu.streaming.warehouse.entry.TaskType.SYNC;
 import static java.util.stream.Collectors.toList;
 
-public class MysqlTableSqlParseHandler implements SqlParseHandler {
+public class MySQLTableSqlParseHandler implements SqlParseHandler {
 
-    public static final MysqlTableSqlParseHandler INSTANCE = new MysqlTableSqlParseHandler();
+    public static final MySQLTableSqlParseHandler INSTANCE = new MySQLTableSqlParseHandler();
 
     private static final String PROPERTY_DATABASE = "datasource";
     private static final String PROPERTY_TABLE = "table-name";
 
-    private MysqlTableSqlParseHandler() { }
+    private MySQLTableSqlParseHandler() { }
 
     @Override
     public TableMetadata parseTableMetadata(String name, Map<String, String> properties) {

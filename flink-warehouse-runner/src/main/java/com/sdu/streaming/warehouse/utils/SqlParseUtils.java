@@ -33,7 +33,7 @@ public class SqlParseUtils {
     static {
         HANDLERS = new HashMap<>();
         HANDLERS.put(KAFKA, KafkaTableSqlParseHandler.INSTANCE);
-        HANDLERS.put(MYSQL, MysqlTableSqlParseHandler.INSTANCE);
+        HANDLERS.put(MYSQL, MySQLTableSqlParseHandler.INSTANCE);
         HANDLERS.put(HUDI, HudiTableSqlParseHandler.INSTANCE);
         HANDLERS.put(GENERIC, GenericTableSqlParseHandler.INSTANCE);
     }

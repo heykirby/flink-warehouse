@@ -10,8 +10,9 @@ public enum StorageType implements Serializable {
     CLICKHOUSE(2, "clickhouse"),
     DRUID(3, "druid"),
     MYSQL(4, "mysql"),
-    HUDI(5, "hudi"),
-    GENERIC(6, "generic");
+    REDIS(5, "redis"),
+    HUDI(6, "hudi"),
+    GENERIC(7, "generic");
 
 
     private final int code;

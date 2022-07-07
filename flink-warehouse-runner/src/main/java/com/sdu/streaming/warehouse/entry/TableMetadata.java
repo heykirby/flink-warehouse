@@ -1,9 +1,9 @@
 package com.sdu.streaming.warehouse.entry;
 
-import static java.lang.String.format;
-
 import java.util.Map;
 import java.util.Objects;
+
+import static java.lang.String.format;
 
 public class TableMetadata {
 
