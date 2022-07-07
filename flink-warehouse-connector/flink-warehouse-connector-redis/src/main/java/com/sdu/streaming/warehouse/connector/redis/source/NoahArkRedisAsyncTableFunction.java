@@ -40,7 +40,7 @@ public class NoahArkRedisAsyncTableFunction extends AsyncTableFunction<RowData> 
 
     @Override
     public void open(FunctionContext context) throws Exception {
-        client = RedisClusterClient.create(readOptions.getClusterName());
+        client = RedisClusterClient.create(readOptions.getClusterAddress());
         connection = client.connect(new ByteArrayCodec());
         connection.setAutoFlushCommands(false);
         if (readOptions.isCacheable() && readOptions.getCacheMaxSize() != -1 && readOptions.getCacheExpireMs() != -1) {

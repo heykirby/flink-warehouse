@@ -1,20 +1,20 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
-import java.io.Serializable;
-
 import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisDataType;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
+
+import java.io.Serializable;
 
 public class NoahArkRedisConfigOptions implements Serializable {
 
     private NoahArkRedisConfigOptions() { }
 
-    public static final ConfigOption<String> REDIS_CLUSTER =
-            ConfigOptions.key("redis-cluster")
+    public static final ConfigOption<String> REDIS_ADDRESS =
+            ConfigOptions.key("redis-address")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("redis cluster name");
+                    .withDescription("redis cluster address, eg: ");
 
     public static final ConfigOption<NoahArkRedisDataType> REDIS_STORAGE_TYPE =
             ConfigOptions.key("redis-storage-type")
