@@ -45,10 +45,10 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
     public NoahArkRedisRowDataRuntimeConverter(NoahArkRedisOptions redisOptions, int[][] primaryKeyIndexes) {
         this.redisOptions = redisOptions;
         this.primaryKeyIndexes = primaryKeyIndexes;
-        this.open();
+        this.initailize();
     }
 
-    private void open() {
+    private void initailize() {
         RowType rowType = redisOptions.getRowType();
 
         // primary key
