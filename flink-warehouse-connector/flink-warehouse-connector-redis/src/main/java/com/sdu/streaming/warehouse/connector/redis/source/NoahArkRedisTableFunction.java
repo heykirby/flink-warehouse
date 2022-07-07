@@ -79,4 +79,14 @@ public class NoahArkRedisTableFunction extends TableFunction<RowData> {
         }
     }
 
+
+    @Override
+    public void close() throws Exception {
+        if (client != null) {
+            client.shutdown();
+        }
+        if (connection != null) {
+            connection.close();
+        }
+    }
 }

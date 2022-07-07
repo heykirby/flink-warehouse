@@ -105,6 +105,8 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     }
 
     private void doFlush(List<NoahArkRedisData<?>> bufferData) {
+        // TODO: AsyncCommands + flushCommands 实现 pipeline
+        // TODO:
         bufferData.forEach(redisData -> redisData.save(connection));
         connection.flushCommands();
     }

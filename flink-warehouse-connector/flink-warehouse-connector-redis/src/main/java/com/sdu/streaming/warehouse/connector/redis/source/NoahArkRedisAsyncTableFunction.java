@@ -105,4 +105,14 @@ public class NoahArkRedisAsyncTableFunction extends AsyncTableFunction<RowData> 
         }
     }
 
+    @Override
+    public void close() throws Exception {
+        if (client != null) {
+            client.shutdown();
+        }
+        if (connection != null) {
+            connection.close();
+        }
+    }
+
 }
