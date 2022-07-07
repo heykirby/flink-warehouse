@@ -1,17 +1,15 @@
 package com.sdu.streaming.warehouse.connector.redis.sink;
 
-import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisObject;
 import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRuntimeConverter;
+import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisData;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
-import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
-import org.apache.flink.types.RowKind;
 import org.apache.flink.util.concurrent.ExecutorThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +31,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
 
     private transient RedisClusterClient client;
     private transient StatefulRedisClusterConnection<byte[], byte[]> connection;
-    private transient NoahArkRedisBufferQueue<NoahArkRedisObject> bufferQueue;
+    private transient NoahArkRedisBufferQueue<NoahArkRedisData<?>> bufferQueue;
     private transient ScheduledExecutorService executor;
     private transient ScheduledFuture scheduledFuture;
 
@@ -50,7 +48,6 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     public void open(Configuration configuration) throws Exception {
         LOG.info("task[{} / {}] start initialize redis connection",
                 getRuntimeContext().getIndexOfThisSubtask(), getRuntimeContext().getNumberOfParallelSubtasks());
-        converter.open();
         bufferQueue = new NoahArkRedisBufferQueue<>();
         executor = Executors.newScheduledThreadPool(1, new ExecutorThreadFactory("redis-sink-flusher"));
         scheduledFuture = executor.scheduleWithFixedDelay(
@@ -107,72 +104,8 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
         checkErrorAndRethrow();
     }
 
-    private void doFlush(List<NoahArkRedisObject> bufferData) {
-        // TODO: 异步写入
-        final RedisAdvancedClusterCommands<byte[], byte[]> command = connection.sync();
-        switch (writeOptions.getRedisDataType()) {
-            case MAP:
-                bufferData.forEach(kv -> {
-                    RowKind kind = kv.getOperation();
-                    byte[] key = kv.getRedisKey();
-                    switch (kind) {
-                        case INSERT:
-                        case UPDATE_AFTER:
-                            command.hmset(key, kv.getRedisValueAsMap());
-                            command.expire(key, writeOptions.getExpireSeconds());
-                            break;
-
-                        case DELETE:
-                        case UPDATE_BEFORE:
-                            command.del(key);
-                            break;
-                    }
-                });
-                break;
-
-            case LIST:
-                bufferData.forEach(kv -> {
-                    RowKind kind = kv.getOperation();
-                    byte[] key = kv.getRedisKey();
-                    switch (kind) {
-                        case INSERT:
-                        case UPDATE_AFTER:
-                            command.rpush(key, kv.getRedisValueAsList());
-                            command.expire(key, writeOptions.getExpireSeconds());
-                            break;
-
-                        case DELETE:
-                        case UPDATE_BEFORE:
-                            command.del(key);
-                            break;
-                    }
-                });
-                break;
-
-            case STRING:
-                bufferData.forEach(kv -> {
-                    RowKind kind = kv.getOperation();
-                    byte[] key = kv.getRedisKey();
-                    switch (kind) {
-                        case INSERT:
-                        case UPDATE_AFTER:
-                            command.set(key, kv.getRedisValue());
-                            command.expire(key, writeOptions.getExpireSeconds());
-                            break;
-
-                        case DELETE:
-                        case UPDATE_BEFORE:
-                            command.del(key);
-                            break;
-                    }
-                });
-                break;
-
-            default:
-                failureThrowable.compareAndSet(null,
-                        new UnsupportedOperationException("unsupported storage structure: " + writeOptions.getRedisDataType()));
-
-        }
+    private void doFlush(List<NoahArkRedisData<?>> bufferData) {
+        bufferData.forEach(redisData -> redisData.save(connection));
         connection.flushCommands();
     }
 

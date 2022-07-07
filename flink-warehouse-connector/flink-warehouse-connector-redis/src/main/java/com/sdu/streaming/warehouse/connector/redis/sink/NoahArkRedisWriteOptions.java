@@ -41,11 +41,12 @@ public class NoahArkRedisWriteOptions extends NoahArkRedisOptions {
         return bufferFlushInterval;
     }
 
-    public long getExpireSeconds() {
-        return expireSeconds;
-    }
-
     public int getParallelism() {
         return parallelism;
+    }
+
+    @Override
+    public long expireTime() {
+        return expireSeconds;
     }
 }

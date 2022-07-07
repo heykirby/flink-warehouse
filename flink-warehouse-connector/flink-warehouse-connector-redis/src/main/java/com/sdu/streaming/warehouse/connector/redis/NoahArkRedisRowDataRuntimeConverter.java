@@ -78,8 +78,9 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
     }
 
     @Override
-    public NoahArkRedisObject serialize(RowData data) throws IOException {
+    public NoahArkRedisData<?> serialize(RowData data) throws IOException {
         NoahArkRedisDataType redisDataType = redisOptions.getRedisDataType();
+        long expireSeconds = redisOptions.expireTime();
         switch (redisDataType) {
             case MAP:
                 byte[] mapKeys = REDIS_MAP_DESERIALIZER.serializeKey(data, redisOptions.getKeyPrefix(), rowKeyFieldGetters, rowKeySerializers);
@@ -89,7 +90,7 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
                         rowFieldGetters,
                         rowFieldSerializers
                 );
-                return new NoahArkRedisMapObject(data.getRowKind(), mapKeys, mapValues);
+                return new NoahArkRedisMapData(expireSeconds, data.getRowKind(), mapKeys, mapValues);
 
             case LIST:
                 byte[] listKeys = REDIS_LIST_DESERIALIZER.serializeKey(data, redisOptions.getKeyPrefix(), rowKeyFieldGetters, rowKeySerializers);
@@ -99,7 +100,7 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
                         rowFieldGetters,
                         rowFieldSerializers
                 );
-                return new NoahArkRedisListObject(data.getRowKind(), listKeys, listValues);
+                return new NoahArkRedisListData(expireSeconds, data.getRowKind(), listKeys, listValues);
 
             case STRING:
                 byte[] stringKeys = REDIS_STRING_DESERIALIZER.serializeKey(data, redisOptions.getKeyPrefix(), rowKeyFieldGetters, rowKeySerializers);
@@ -109,7 +110,7 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
                         rowFieldGetters,
                         rowFieldSerializers
                 );
-                return new NoahArkRedisStringObject(data.getRowKind(), stringKeys, stringValues);
+                return new NoahArkRedisStringData(expireSeconds, data.getRowKind(), stringKeys, stringValues);
 
             default:
                 throw new UnsupportedOperationException("Unsupported redis data type: " + redisOptions.getRedisDataType());

@@ -50,4 +50,8 @@ public class NoahArkRedisReadOptions extends NoahArkRedisOptions {
         return cacheExpireMs;
     }
 
+    @Override
+    public long expireTime() {
+        throw new UnsupportedOperationException("");
+    }
 }

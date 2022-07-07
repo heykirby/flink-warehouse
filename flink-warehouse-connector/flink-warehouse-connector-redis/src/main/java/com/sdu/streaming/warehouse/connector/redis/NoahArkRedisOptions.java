@@ -5,7 +5,7 @@ import org.apache.flink.table.types.logical.RowType;
 
 import java.io.Serializable;
 
-public class NoahArkRedisOptions implements Serializable {
+public abstract class NoahArkRedisOptions implements Serializable {
 
     private final RowType rowType;
     private final String keyPrefix;
@@ -29,4 +29,5 @@ public class NoahArkRedisOptions implements Serializable {
         return redisDataType;
     }
 
+    public abstract long expireTime();
 }
