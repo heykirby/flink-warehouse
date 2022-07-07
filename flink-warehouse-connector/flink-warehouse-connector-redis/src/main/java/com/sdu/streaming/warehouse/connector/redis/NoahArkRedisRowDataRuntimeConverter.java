@@ -11,6 +11,7 @@ import org.apache.flink.table.types.logical.RowType;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 import static com.sdu.streaming.warehouse.connector.redis.NoahArkRedisListTypeSerializer.REDIS_LIST_DESERIALIZER;
 import static com.sdu.streaming.warehouse.connector.redis.NoahArkRedisMapTypeSerializer.REDIS_MAP_DESERIALIZER;
@@ -44,10 +45,10 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
     public NoahArkRedisRowDataRuntimeConverter(NoahArkRedisOptions redisOptions, int[][] primaryKeyIndexes) {
         this.redisOptions = redisOptions;
         this.primaryKeyIndexes = primaryKeyIndexes;
+        this.open();
     }
 
-    @Override
-    public void open() {
+    private void open() {
         RowType rowType = redisOptions.getRowType();
 
         // primary key
@@ -134,6 +135,62 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
                 byte[] stringKeys = REDIS_STRING_DESERIALIZER.serializeKey(key, keyPrefix, rowKeyFieldGetters, rowKeySerializers);
                 byte[] stringValues = client.sync().get(stringKeys);
                 return REDIS_STRING_DESERIALIZER.deserializeValue(stringValues, fieldNames, rowFieldDeserializers);
+
+            default:
+                throw new UnsupportedOperationException("Unsupported redis data type: " + redisOptions.getRedisDataType());
+        }
+    }
+
+    @Override
+    public void asyncDeserialize(StatefulRedisClusterConnection<byte[], byte[]> client, RowData key, BiConsumer<RowData, Throwable> resultConsumer) throws IOException{
+        NoahArkRedisDataType redisDataType = redisOptions.getRedisDataType();
+        String keyPrefix = redisOptions.getKeyPrefix();
+        switch (redisDataType) {
+            case MAP:
+                byte[] mapKeys = REDIS_MAP_DESERIALIZER.serializeKey(key, keyPrefix, rowKeyFieldGetters, rowKeySerializers);
+                client.async().hgetall(mapKeys).whenComplete((mapValues, throwable) -> {
+                            if (throwable != null) {
+                                resultConsumer.accept(null, throwable);
+                            } else {
+                                try {
+                                    RowData valueRow = REDIS_MAP_DESERIALIZER.deserializeValue(mapValues, fieldNames, rowFieldDeserializers);
+                                    resultConsumer.accept(valueRow, null);
+                                } catch (IOException ex) {
+                                    resultConsumer.accept(null, ex);
+                                }
+
+                            }
+                        });
+
+            case LIST:
+                byte[] listKeys = REDIS_LIST_DESERIALIZER.serializeKey(key, keyPrefix, rowKeyFieldGetters, rowKeySerializers);
+                client.async().lrange(listKeys, 0, -1).whenComplete((listValues, throwable) -> {
+                    if (throwable != null) {
+                        resultConsumer.accept(null, throwable);
+                    } else {
+                        try {
+                            RowData valueRow = REDIS_LIST_DESERIALIZER.deserializeValue(listValues.toArray(new byte[0][0]), fieldNames, rowFieldDeserializers);
+                            resultConsumer.accept(valueRow, null);
+                        } catch (IOException ex) {
+                            resultConsumer.accept(null, ex);
+                        }
+                    }
+                });
+
+            case STRING:
+                byte[] stringKeys = REDIS_STRING_DESERIALIZER.serializeKey(key, keyPrefix, rowKeyFieldGetters, rowKeySerializers);
+                client.async().get(stringKeys).whenComplete((stringValues, throwable) -> {
+                    if (throwable != null) {
+                        resultConsumer.accept(null, throwable);
+                    } else {
+                        try {
+                            RowData valueRow = REDIS_STRING_DESERIALIZER.deserializeValue(stringValues, fieldNames, rowFieldDeserializers);
+                            resultConsumer.accept(valueRow, null);
+                        } catch (IOException ex) {
+                            resultConsumer.accept(null, ex);
+                        }
+                    }
+                });
 
             default:
                 throw new UnsupportedOperationException("Unsupported redis data type: " + redisOptions.getRedisDataType());

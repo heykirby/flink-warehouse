@@ -3,6 +3,7 @@ package com.sdu.streaming.warehouse.connector.redis.source;
 import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRowDataRuntimeConverter;
 import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRuntimeConverter;
 import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.connector.source.AsyncTableFunctionProvider;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
 import org.apache.flink.table.connector.source.TableFunctionProvider;
@@ -33,8 +34,7 @@ public class NoahArkRedisDynamicTableSource implements LookupTableSource {
         NoahArkRedisRuntimeConverter<RowData> converter = new NoahArkRedisRowDataRuntimeConverter(readOptions, primaryKeyIndexes);
 
         if (readOptions.isAsync()) {
-            throw new UnsupportedOperationException("waiting develop");
-//            return AsyncTableFunctionProvider.of(null);
+            return AsyncTableFunctionProvider.of(new NoahArkRedisAsyncTableFunction(readOptions, converter));
         }
         return TableFunctionProvider.of(new NoahArkRedisTableFunction(converter, readOptions));
     }
