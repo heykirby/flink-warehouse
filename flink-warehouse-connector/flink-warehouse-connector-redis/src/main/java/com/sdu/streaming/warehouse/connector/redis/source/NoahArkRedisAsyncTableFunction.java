@@ -1,8 +1,8 @@
 package com.sdu.streaming.warehouse.connector.redis.source;
 
 import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRuntimeConverter;
-import io.lettuce.core.cluster.RedisClusterClient;
-import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.ByteArrayCodec;
 import org.apache.flink.shaded.curator5.com.google.common.cache.Cache;
 import org.apache.flink.shaded.curator5.com.google.common.cache.CacheBuilder;
@@ -29,8 +29,8 @@ public class NoahArkRedisAsyncTableFunction extends AsyncTableFunction<RowData> 
     private final NoahArkRedisReadOptions readOptions;
     private final NoahArkRedisRuntimeConverter<RowData> converter;
 
-    private transient RedisClusterClient client;
-    private transient StatefulRedisClusterConnection<byte[], byte[]> connection;
+    private transient RedisClient client;
+    private transient StatefulRedisConnection<byte[], byte[]> connection;
     private transient Cache<RowData, RowData> cache;
 
     public NoahArkRedisAsyncTableFunction(NoahArkRedisReadOptions readOptions, NoahArkRedisRuntimeConverter<RowData> converter) {
@@ -40,9 +40,9 @@ public class NoahArkRedisAsyncTableFunction extends AsyncTableFunction<RowData> 
 
     @Override
     public void open(FunctionContext context) throws Exception {
-        client = RedisClusterClient.create(readOptions.getClusterAddress());
+        client = RedisClient.create(readOptions.getClusterAddress());
         connection = client.connect(new ByteArrayCodec());
-        connection.setAutoFlushCommands(false);
+        connection.setAutoFlushCommands(true);
         if (readOptions.isCacheable() && readOptions.getCacheMaxSize() != -1 && readOptions.getCacheExpireMs() != -1) {
             cache = CacheBuilder.newBuilder()
                     .expireAfterWrite(readOptions.getCacheExpireMs(), TimeUnit.MILLISECONDS)

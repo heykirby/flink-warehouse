@@ -1,7 +1,7 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
 import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisData;
-import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.api.StatefulRedisConnection;
 import org.apache.flink.table.data.RowData;
 
 import java.io.IOException;
@@ -14,7 +14,7 @@ public interface NoahArkRedisRuntimeConverter<T> extends Serializable {
 
     NoahArkRedisData<?> serialize(T data) throws IOException;
 
-    T deserialize(StatefulRedisClusterConnection<byte[], byte[]> client, RowData key) throws IOException;
+    T deserialize(StatefulRedisConnection<byte[], byte[]> client, RowData key) throws IOException;
 
-    void asyncDeserialize(StatefulRedisClusterConnection<byte[], byte[]> client, RowData key, BiConsumer<T, Throwable> resultConsumer) throws IOException;
+    void asyncDeserialize(StatefulRedisConnection<byte[], byte[]> client, RowData key, BiConsumer<T, Throwable> resultConsumer) throws IOException;
 }

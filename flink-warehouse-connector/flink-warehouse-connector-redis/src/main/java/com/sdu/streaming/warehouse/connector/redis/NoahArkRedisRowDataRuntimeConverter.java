@@ -3,7 +3,7 @@ package com.sdu.streaming.warehouse.connector.redis;
 import com.sdu.streaming.warehouse.connector.redis.entry.*;
 import com.sdu.streaming.warehouse.deserializer.NoahArkDataDeserializer;
 import com.sdu.streaming.warehouse.deserializer.NoahArkDataSerializer;
-import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.api.StatefulRedisConnection;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -118,7 +118,7 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
     }
 
     @Override
-    public RowData deserialize(StatefulRedisClusterConnection<byte[], byte[]> client, RowData key) throws IOException {
+    public RowData deserialize(StatefulRedisConnection<byte[], byte[]> client, RowData key) throws IOException {
         NoahArkRedisDataType redisDataType = redisOptions.getRedisDataType();
         String keyPrefix = redisOptions.getKeyPrefix();
         switch (redisDataType) {
@@ -143,7 +143,7 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
     }
 
     @Override
-    public void asyncDeserialize(StatefulRedisClusterConnection<byte[], byte[]> client, RowData key, BiConsumer<RowData, Throwable> resultConsumer) throws IOException{
+    public void asyncDeserialize(StatefulRedisConnection<byte[], byte[]> client, RowData key, BiConsumer<RowData, Throwable> resultConsumer) throws IOException{
         NoahArkRedisDataType redisDataType = redisOptions.getRedisDataType();
         String keyPrefix = redisOptions.getKeyPrefix();
         switch (redisDataType) {

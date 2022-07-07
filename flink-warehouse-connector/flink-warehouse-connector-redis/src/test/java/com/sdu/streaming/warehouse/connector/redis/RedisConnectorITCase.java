@@ -28,6 +28,7 @@ public class RedisConnectorITCase extends RedisBaseTest {
                             .build());
 
     private String sourceTable;
+    private String orderTable;
     private String redisTable;
 
     @Before
@@ -46,6 +47,19 @@ public class RedisConnectorITCase extends RedisBaseTest {
                 sourceProperties
         );
 
+        // order table
+        Map<String, String> orderProperties = Maps.newHashMap();
+        orderProperties.put("connector", "datagen");
+        orderProperties.put("number-of-rows", "10");
+        orderProperties.put("fields.pid.min", "100");
+        orderProperties.put("fields.pid.max", "120");
+        orderTable = createTableDDL(
+                "s1",
+                newArrayList(Tuple2.of("id", "STRING"), Tuple2.of("pid", "INT"), Tuple2.of("ptime", "AS PROCTIME()")),
+                null,
+                orderProperties
+        );
+
         // redis table
         Map<String, String> redisProperties = Maps.newHashMap();
         redisProperties.put("connector", "redis");
@@ -61,7 +75,7 @@ public class RedisConnectorITCase extends RedisBaseTest {
     }
 
     @Test
-    public void testTableSink() throws Exception {
+    public void testRedisTableSink() throws Exception {
         StreamExecutionEnvironment execEnv = StreamExecutionEnvironment.getExecutionEnvironment();
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(execEnv, streamSettings);
         tEnv.executeSql(sourceTable);
@@ -70,6 +84,17 @@ public class RedisConnectorITCase extends RedisBaseTest {
         TableResult tableResult = tEnv.executeSql("INSERT INTO t2 SELECT * FROM t1");
         // wait finish
         tableResult.await();
+    }
+
+    @Test
+    public void testLookupJoinRedisTable() throws Exception {
+        StreamExecutionEnvironment execEnv = StreamExecutionEnvironment.getExecutionEnvironment();
+        StreamTableEnvironment tEnv = StreamTableEnvironment.create(execEnv, streamSettings);
+        tEnv.executeSql(orderTable);
+        tEnv.executeSql(redisTable);
+
+        TableResult tableResult = tEnv.executeSql("SELECT id, s1.pid, name, price FROM s1 LEFT JOIN t2 FOR SYSTEM_TIME AS OF s1.ptime ON s1.pid = t2.pid");
+        tableResult.collect().forEachRemaining(System.out::println);
     }
 
 

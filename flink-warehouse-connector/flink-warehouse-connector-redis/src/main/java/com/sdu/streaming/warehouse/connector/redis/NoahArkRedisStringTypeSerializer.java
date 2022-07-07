@@ -31,8 +31,10 @@ public class NoahArkRedisStringTypeSerializer extends NoahArkAbstractRedisTypeSe
 
     @Override
     public RowData deserializeValue(byte[] bytes, String[] fieldNames, NoahArkDataDeserializer[] rowFieldDeserializers) throws IOException {
+        if (bytes == null || bytes.length == 0) {
+            return null;
+        }
         Preconditions.checkArgument(fieldNames.length == rowFieldDeserializers.length);
-
         GenericRowData rowData = new GenericRowData(fieldNames.length);
         NoahArkByteArrayDataInput input = new NoahArkByteArrayDataInput(bytes);
         for (int pos = 0; pos < fieldNames.length; ++pos) {
