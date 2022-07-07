@@ -2,8 +2,8 @@ package com.sdu.streaming.warehouse.connector.redis.sink;
 
 import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRuntimeConverter;
 import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisData;
-import io.lettuce.core.cluster.RedisClusterClient;
-import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.ByteArrayCodec;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
@@ -29,8 +29,8 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     private final NoahArkRedisWriteOptions writeOptions;
     private final NoahArkRedisRuntimeConverter<T> converter;
 
-    private transient RedisClusterClient client;
-    private transient StatefulRedisClusterConnection<byte[], byte[]> connection;
+    private transient RedisClient client;
+    private transient StatefulRedisConnection<byte[], byte[]> connection;
     private transient NoahArkRedisBufferQueue<NoahArkRedisData<?>> bufferQueue;
     private transient ScheduledExecutorService executor;
     private transient ScheduledFuture scheduledFuture;
@@ -48,6 +48,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     public void open(Configuration configuration) throws Exception {
         LOG.info("task[{} / {}] start initialize redis connection",
                 getRuntimeContext().getIndexOfThisSubtask(), getRuntimeContext().getNumberOfParallelSubtasks());
+        converter.open();
         bufferQueue = new NoahArkRedisBufferQueue<>();
         executor = Executors.newScheduledThreadPool(1, new ExecutorThreadFactory("redis-sink-flusher"));
         scheduledFuture = executor.scheduleWithFixedDelay(
@@ -68,7 +69,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
                 TimeUnit.SECONDS
         );
 
-        client = RedisClusterClient.create(writeOptions.getClusterName());
+        client = RedisClient.create(writeOptions.getClusterName());
         connection = client.connect(new ByteArrayCodec());
         connection.setAutoFlushCommands(false);
     }

@@ -1,8 +1,8 @@
 package com.sdu.streaming.warehouse.connector.redis.entry;
 
 import com.sdu.streaming.warehouse.connector.redis.NoahArkAbstractRedisData;
-import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
-import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
 import org.apache.flink.types.RowKind;
 
 public class NoahArkRedisStringData extends NoahArkAbstractRedisData<byte[]> {
@@ -12,8 +12,8 @@ public class NoahArkRedisStringData extends NoahArkAbstractRedisData<byte[]> {
     }
 
     @Override
-    public void save(StatefulRedisClusterConnection<byte[], byte[]> client) {
-        RedisAdvancedClusterCommands<byte[], byte[]> command = client.sync();
+    public void save(StatefulRedisConnection<byte[], byte[]> client) {
+        RedisCommands<byte[], byte[]> command = client.sync();
         switch (getRedisDataKind()) {
             case INSERT:
             case UPDATE_AFTER:

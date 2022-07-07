@@ -34,6 +34,7 @@ public class NoahArkRedisTableFunction extends TableFunction<RowData> {
 
     @Override
     public void open(FunctionContext context) throws Exception {
+        converter.open();
         client = RedisClusterClient.create(readOptions.getClusterAddress());
         connection = client.connect(new ByteArrayCodec());
         connection.setAutoFlushCommands(false);

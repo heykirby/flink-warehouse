@@ -10,6 +10,8 @@ import java.util.function.BiConsumer;
 
 public interface NoahArkRedisRuntimeConverter<T> extends Serializable {
 
+    void open() throws IOException;
+
     NoahArkRedisData<?> serialize(T data) throws IOException;
 
     T deserialize(StatefulRedisClusterConnection<byte[], byte[]> client, RowData key) throws IOException;

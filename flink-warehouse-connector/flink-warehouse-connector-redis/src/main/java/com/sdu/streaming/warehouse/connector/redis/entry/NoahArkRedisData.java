@@ -1,6 +1,6 @@
 package com.sdu.streaming.warehouse.connector.redis.entry;
 
-import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.api.StatefulRedisConnection;
 import org.apache.flink.types.RowKind;
 
 public interface NoahArkRedisData<T> {
@@ -13,6 +13,6 @@ public interface NoahArkRedisData<T> {
 
     T getRedisValue();
 
-    void save(StatefulRedisClusterConnection<byte[], byte[]> client);
+    void save(StatefulRedisConnection<byte[], byte[]> client);
 
 }
