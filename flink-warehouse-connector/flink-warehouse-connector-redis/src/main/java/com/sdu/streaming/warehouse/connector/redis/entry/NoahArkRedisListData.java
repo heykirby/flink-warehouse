@@ -20,6 +20,8 @@ public class NoahArkRedisListData extends NoahArkAbstractRedisData<byte[][]> {
         switch (getRedisDataKind()) {
             case INSERT:
             case UPDATE_AFTER:
+                // delete old, append new
+                command.del(getRedisKey());
                 command.rpush(getRedisKey(), getRedisValue());
                 command.expire(getRedisKey(), expireTime());
                 break;
