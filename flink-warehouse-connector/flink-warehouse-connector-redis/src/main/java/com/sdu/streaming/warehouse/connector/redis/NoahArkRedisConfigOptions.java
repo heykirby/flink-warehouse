@@ -16,11 +16,11 @@ public class NoahArkRedisConfigOptions implements Serializable {
                     .noDefaultValue()
                     .withDescription("redis cluster address, eg: 'redis://password@localhost:6379/0'");
 
-    public static final ConfigOption<NoahArkRedisDataType> REDIS_STORAGE_TYPE =
-            ConfigOptions.key("redis-storage-type")
+    public static final ConfigOption<NoahArkRedisDataType> REDIS_DATA_TYPE =
+            ConfigOptions.key("redis-data-type")
                     .enumType(NoahArkRedisDataType.class)
                     .defaultValue(NoahArkRedisDataType.STRING)
-                    .withDescription("redis data storage type, default: string");
+                    .withDescription("redis data type, default: string");
 
     public static final ConfigOption<String> REDIS_KEY_PREFIX =
             ConfigOptions.key("redis-key-prefix")

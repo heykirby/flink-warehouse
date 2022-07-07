@@ -65,7 +65,7 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> options = new HashSet<>();
-        options.add(REDIS_STORAGE_TYPE);
+        options.add(REDIS_DATA_TYPE);
         options.add(REDIS_KEY_PREFIX);
         // write
         options.add(REDIS_EXPIRE_SECONDS);
@@ -88,7 +88,7 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
         return new NoahArkRedisReadOptions(
                 (RowType) rowDataType.getLogicalType(),
                 tableOption.get(REDIS_KEY_PREFIX),
-                tableOption.get(REDIS_STORAGE_TYPE),
+                tableOption.get(REDIS_DATA_TYPE),
                 tableOption.get(REDIS_ADDRESS),
                 tableOption.get(REDIS_READ_ASYNCABLE),
                 tableOption.get(REDIS_READ_RETRIES),
@@ -104,7 +104,7 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
         return new NoahArkRedisWriteOptions(
                 (RowType) rowDataType.getLogicalType(),
                 tableOption.get(REDIS_KEY_PREFIX),
-                tableOption.get(REDIS_STORAGE_TYPE),
+                tableOption.get(REDIS_DATA_TYPE),
                 tableOption.get(REDIS_ADDRESS),
                 tableOption.get(REDIS_WRITE_BATCH_SIZE),
                 tableOption.get(REDIS_WRITE_FLUSH_INTERVAL),
