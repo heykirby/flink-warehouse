@@ -51,6 +51,7 @@ public class RedisConnectorITCase extends RedisBaseTest {
         redisProperties.put("connector", "redis");
         redisProperties.put("redis-address", "redis://127.0.0.1:6379");
         redisProperties.put("redis-key-prefix", "pro-");
+        redisProperties.put("redis-write-batch-size", "1");
         redisTable = createTableDDL(
                 "t2",
                 newArrayList(Tuple2.of("pid", "INT"), Tuple2.of("name", "STRING"), Tuple2.of("price", "DOUBLE")),

@@ -2,7 +2,9 @@ package com.sdu.streaming.warehouse.connector.redis.sink;
 
 import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRuntimeConverter;
 import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisData;
+import com.sdu.streaming.warehouse.utils.MoreFutures;
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.ByteArrayCodec;
 import org.apache.flink.configuration.Configuration;
@@ -14,6 +16,7 @@ import org.apache.flink.util.concurrent.ExecutorThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,8 +32,10 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     private final NoahArkRedisWriteOptions writeOptions;
     private final NoahArkRedisRuntimeConverter<T> converter;
 
+    // 非集群模式
     private transient RedisClient client;
     private transient StatefulRedisConnection<byte[], byte[]> connection;
+
     private transient NoahArkRedisBufferQueue<NoahArkRedisData<?>> bufferQueue;
     private transient ScheduledExecutorService executor;
     private transient ScheduledFuture scheduledFuture;
@@ -106,10 +111,11 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     }
 
     private void doFlush(List<NoahArkRedisData<?>> bufferData) {
-        // TODO: AsyncCommands + flushCommands 实现 pipeline
-        // TODO:
-        bufferData.forEach(redisData -> redisData.save(connection));
+        // AsyncCommand + FlushCommands --> Redis Pipeline
+        final List<RedisFuture<?>> result = new LinkedList<>();
+        bufferData.forEach(redisData -> result.addAll(redisData.save(connection)));
         connection.flushCommands();
+        MoreFutures.tryAwait(result);
     }
 
     private void checkErrorAndRethrow() {
