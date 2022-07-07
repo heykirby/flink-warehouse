@@ -83,10 +83,7 @@ public interface NoahArkDataDeserializer extends Serializable {
                 throw new IllegalArgumentException();
         }
 
-        if (!fieldType.isNullable()) {
-            return deserializer;
-        }
-        return input -> null;
+        return deserializer;
     }
 
 

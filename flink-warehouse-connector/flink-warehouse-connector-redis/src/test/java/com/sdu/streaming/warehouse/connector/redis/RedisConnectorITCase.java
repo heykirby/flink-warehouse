@@ -37,9 +37,9 @@ public class RedisConnectorITCase extends RedisBaseTest {
         // source table
         Map<String, String> sourceProperties = Maps.newHashMap();
         sourceProperties.put("connector", "datagen");
-        sourceProperties.put("number-of-rows", "10");
+        sourceProperties.put("number-of-rows", "2");
         sourceProperties.put("fields.pid.min", "100");
-        sourceProperties.put("fields.pid.max", "120");
+        sourceProperties.put("fields.pid.max", "100");
         sourceTable = createTableDDL(
                 "t1",
                 newArrayList(Tuple2.of("pid", "INT"), Tuple2.of("name", "STRING"), Tuple2.of("price", "DOUBLE")),
@@ -50,9 +50,9 @@ public class RedisConnectorITCase extends RedisBaseTest {
         // order table
         Map<String, String> orderProperties = Maps.newHashMap();
         orderProperties.put("connector", "datagen");
-        orderProperties.put("number-of-rows", "10");
+        orderProperties.put("number-of-rows", "2");
         orderProperties.put("fields.pid.min", "100");
-        orderProperties.put("fields.pid.max", "120");
+        orderProperties.put("fields.pid.max", "100");
         orderTable = createTableDDL(
                 "s1",
                 newArrayList(Tuple2.of("id", "STRING"), Tuple2.of("pid", "INT"), Tuple2.of("ptime", "AS PROCTIME()")),

@@ -1,5 +1,6 @@
 package com.sdu.streaming.warehouse.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -7,13 +8,13 @@ import java.io.IOException;
 public class NoahArkByteArrayDataInput implements DataInput {
 
     private final DataInput input;
-    private final NoahArkByteArrayInputStream stream;
+//    private final NoahArkByteArrayInputStream stream;
 
 
     public NoahArkByteArrayDataInput(byte[] bytes) {
-//        this.input = new DataInputStream(new ByteArrayInputStream(bytes));
-        this.stream = new NoahArkByteArrayInputStream(bytes);
-        this.input = new DataInputStream(stream);
+        this.input = new DataInputStream(new ByteArrayInputStream(bytes));
+//        this.stream = new NoahArkByteArrayInputStream(bytes);
+//        this.input = new DataInputStream(stream);
     }
 
     @Override
@@ -91,7 +92,7 @@ public class NoahArkByteArrayDataInput implements DataInput {
         return this.input.readUTF();
     }
 
-    public void replace(byte[] bytes) {
-        this.stream.replace(bytes);
-    }
+//    public void replace(byte[] bytes) {
+//        this.stream.replace(bytes);
+//    }
 }
