@@ -1,13 +1,13 @@
 package com.sdu.streaming.warehouse.format.protobuf;
 
 import com.google.protobuf.Descriptors;
-import com.sdu.streaming.warehouse.format.protobuf.utils.VariableUtils;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.MapType;
 
 import java.util.Map;
 
 import static com.sdu.streaming.warehouse.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
+import static com.sdu.streaming.warehouse.utils.VariableUtils.getSerialId;
 import static java.lang.String.format;
 
 public class MapTypeConverterCodeGenerator implements TypeConverterCodeGenerator {
@@ -42,16 +42,16 @@ public class MapTypeConverterCodeGenerator implements TypeConverterCodeGenerator
         Descriptors.FieldDescriptor keyFd = fd.getMessageType().findFieldByName("key");
         Descriptors.FieldDescriptor valueFd = fd.getMessageType().findFieldByName("value");
         StringBuilder sb = new StringBuilder();
-        String input = String.format("input$%d", VariableUtils.getSerialId());
+        String input = String.format("input$%d", getSerialId());
         String keyType = ProtobufUtils.getJavaType(keyFd);
         String valueType = ProtobufUtils.getJavaType(valueFd);
         sb.append(format("Map<%s, %s> %s = %s;", keyType, valueType, input, inputCode));
-        String ret = String.format("ret$%d", VariableUtils.getSerialId());
+        String ret = String.format("ret$%d", getSerialId());
         sb.append(format("Map<Object, Object> %s = new HashMap();", ret));
-        String entry = String.format("entry$%d", VariableUtils.getSerialId());
+        String entry = String.format("entry$%d", getSerialId());
         sb.append(format("for(Map.Entry<%s, %s> %s : %s.entrySet()) { ", keyType, valueType, entry, input));
-        String key = String.format("key$%d", VariableUtils.getSerialId());
-        String value = String.format("value$%d", VariableUtils.getSerialId());
+        String key = String.format("key$%d", getSerialId());
+        String value = String.format("value$%d", getSerialId());
         sb.append(format("Object %s = null;", key));
         sb.append(format("Object %s = null;", value));
         TypeConverterCodeGenerator keyCodeGenerator = getProtobufTypeConverterCodeGenerator(fieldMappings, keyFd, this.keyType, ignoreDefaultValue);

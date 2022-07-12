@@ -1,7 +1,7 @@
 package com.sdu.streaming.warehouse.format.protobuf;
 
 import com.google.protobuf.Descriptors;
-import com.sdu.streaming.warehouse.format.protobuf.utils.FreeMarkerUtils;
+import com.sdu.streaming.warehouse.utils.FreeMarkerUtils;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;

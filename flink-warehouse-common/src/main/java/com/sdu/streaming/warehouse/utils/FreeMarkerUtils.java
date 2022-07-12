@@ -1,4 +1,4 @@
-package com.sdu.streaming.warehouse.format.protobuf.utils;
+package com.sdu.streaming.warehouse.utils;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;

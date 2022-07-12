@@ -1,7 +1,6 @@
 package com.sdu.streaming.warehouse.format.protobuf;
 
 import com.google.protobuf.Descriptors;
-import com.sdu.streaming.warehouse.format.protobuf.utils.VariableUtils;
 import org.apache.flink.table.types.logical.ArrayType;
 import org.apache.flink.table.types.logical.LogicalType;
 
@@ -9,6 +8,7 @@ import java.util.Map;
 
 import static com.sdu.streaming.warehouse.format.protobuf.ProtobufTypeConverterFactory.getProtobufTypeConverterCodeGenerator;
 import static com.sdu.streaming.warehouse.format.protobuf.ProtobufUtils.getJavaType;
+import static com.sdu.streaming.warehouse.utils.VariableUtils.getSerialId;
 import static java.lang.String.format;
 
 public class ArrayTypeConverterCodeGenerator implements TypeConverterCodeGenerator {
@@ -39,15 +39,15 @@ public class ArrayTypeConverterCodeGenerator implements TypeConverterCodeGenerat
          * */
         String elementType = getJavaType(fd);
         StringBuilder sb = new StringBuilder();
-        String input = format("input$%d", VariableUtils.getSerialId());
+        String input = format("input$%d", getSerialId());
         sb.append(format("List<%s> %s = %s;", elementType, input, inputCode));
-        String res = String.format("res$%d", VariableUtils.getSerialId());
+        String res = String.format("res$%d", getSerialId());
         sb.append(format("Object[] %s = new Object[%s.size()];", res, input));
-        String el = format("el$%d", VariableUtils.getSerialId());
-        String index = format("index$%d", VariableUtils.getSerialId());
+        String el = format("el$%d", getSerialId());
+        String index = format("index$%d", getSerialId());
         sb.append(format("int %s = 0;", index));
         sb.append(format("for (%s %s : %s) { ", elementType, el, input));
-        String ret = String.format("ret$%d", VariableUtils.getSerialId());
+        String ret = String.format("ret$%d", getSerialId());
         sb.append(format("Object %s = null;", ret));
         TypeConverterCodeGenerator codeGenerator = getProtobufTypeConverterCodeGenerator(fieldMappings, fd, type, ignoreDefaultValues);
         sb.append(codeGenerator.codegen(ret, el));

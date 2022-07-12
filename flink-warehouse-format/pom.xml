@@ -29,6 +29,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.sdu.streaming</groupId>
+            <artifactId>flink-warehouse-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
 
 </project>
