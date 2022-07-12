@@ -2,15 +2,11 @@ package com.sdu.streaming.warehouse.connector.redis;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.shaded.guava30.com.google.common.collect.Maps;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.TableResult;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
-import org.apache.flink.test.util.MiniClusterWithClientResource;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.List;
@@ -19,13 +15,6 @@ import java.util.Map;
 import static org.apache.flink.shaded.guava30.com.google.common.collect.Lists.newArrayList;
 
 public class RedisConnectorITCase extends RedisBaseTest {
-
-    @ClassRule
-    public static final MiniClusterWithClientResource MINI_CLUSTER =
-            new MiniClusterWithClientResource(
-                    new MiniClusterResourceConfiguration.Builder()
-                            .setConfiguration(new Configuration())
-                            .build());
 
     private String sourceTable;
     private String orderTable;

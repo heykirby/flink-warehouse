@@ -33,7 +33,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-test-utils</artifactId>
+            <artifactId>flink-table-planner_${scala.version}</artifactId>
             <version>${flink.version}</version>
             <scope>test</scope>
         </dependency>
