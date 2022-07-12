@@ -1,4 +1,4 @@
-package com.sdu.streaming.warehouse.test;
+package com.sdu.streaming.warehouse.utils;
 
 import com.google.common.collect.Lists;
 import com.sdu.streaming.warehouse.WarehouseJobBootstrap;

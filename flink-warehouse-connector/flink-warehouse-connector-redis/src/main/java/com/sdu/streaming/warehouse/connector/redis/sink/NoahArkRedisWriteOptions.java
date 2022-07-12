@@ -10,6 +10,7 @@ public class NoahArkRedisWriteOptions extends NoahArkRedisOptions {
     private final int bufferFlushMaxSize;
     private final int bufferFlushInterval;
     private final long expireSeconds;
+    private final boolean asyncWrite;
 
     private final int parallelism;
 
@@ -20,12 +21,13 @@ public class NoahArkRedisWriteOptions extends NoahArkRedisOptions {
                                     int bufferFlushMaxSize,
                                     int bufferFlushInterval,
                                     long expireSeconds,
-                                    int parallelism) {
+                                    boolean asyncWrite, int parallelism) {
         super(rowType, keyPrefix, redisDataType);
         this.clusterName = clusterName;
         this.bufferFlushMaxSize = bufferFlushMaxSize;
         this.bufferFlushInterval = bufferFlushInterval;
         this.expireSeconds = expireSeconds;
+        this.asyncWrite = asyncWrite;
         this.parallelism = parallelism;
     }
 
@@ -43,6 +45,10 @@ public class NoahArkRedisWriteOptions extends NoahArkRedisOptions {
 
     public int getParallelism() {
         return parallelism;
+    }
+
+    public boolean isAsyncWrite() {
+        return asyncWrite;
     }
 
     @Override

@@ -6,16 +6,16 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 // 参考: Guava ByteArrayDataInput
-public class NoahArkByteArrayDataOutput implements DataOutput {
+public class ByteArrayDataOutput implements DataOutput {
 
     final DataOutput output;
     final ByteArrayOutputStream byteArrayOutputStream;
 
-    public NoahArkByteArrayDataOutput() {
+    public ByteArrayDataOutput() {
         this(32);
     }
 
-    public NoahArkByteArrayDataOutput(int size) {
+    public ByteArrayDataOutput(int size) {
         byteArrayOutputStream = new ByteArrayOutputStream(size);
         output = new DataOutputStream(byteArrayOutputStream);
     }

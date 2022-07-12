@@ -2,9 +2,9 @@ package com.sdu.streaming.warehouse.utils;
 
 import java.io.ByteArrayInputStream;
 
-public class NoahArkByteArrayInputStream extends ByteArrayInputStream {
+public class BytesInputStream extends ByteArrayInputStream {
 
-    public NoahArkByteArrayInputStream(byte[] buf) {
+    public BytesInputStream(byte[] buf) {
         super(buf);
     }
 

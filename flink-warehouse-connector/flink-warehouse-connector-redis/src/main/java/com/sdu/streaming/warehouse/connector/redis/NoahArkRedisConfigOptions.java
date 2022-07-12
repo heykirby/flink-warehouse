@@ -73,6 +73,12 @@ public class NoahArkRedisConfigOptions implements Serializable {
                     .defaultValue(60)
                     .withDescription("write buffer flush interval, default: 60s");
 
+    public static final ConfigOption<Boolean> REDIS_WRITE_FLUSH_ASYNCABLE =
+            ConfigOptions.key("redis-write-flush-asyncable")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription("write buffer flush asyncable, default: false");
+
     public static final ConfigOption<Long> REDIS_EXPIRE_SECONDS =
             ConfigOptions.key("redis-expire-seconds")
                     .longType()

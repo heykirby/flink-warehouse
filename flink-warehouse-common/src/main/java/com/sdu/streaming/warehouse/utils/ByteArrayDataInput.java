@@ -5,13 +5,13 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-public class NoahArkByteArrayDataInput implements DataInput {
+public class ByteArrayDataInput implements DataInput {
 
     private final DataInput input;
 //    private final NoahArkByteArrayInputStream stream;
 
 
-    public NoahArkByteArrayDataInput(byte[] bytes) {
+    public ByteArrayDataInput(byte[] bytes) {
         this.input = new DataInputStream(new ByteArrayInputStream(bytes));
 //        this.stream = new NoahArkByteArrayInputStream(bytes);
 //        this.input = new DataInputStream(stream);

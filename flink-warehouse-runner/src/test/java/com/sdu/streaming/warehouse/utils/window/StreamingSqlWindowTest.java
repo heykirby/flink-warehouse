@@ -1,7 +1,7 @@
-package com.sdu.streaming.warehouse.test.window;
+package com.sdu.streaming.warehouse.utils.window;
 
 import com.google.common.collect.Lists;
-import com.sdu.streaming.warehouse.test.StreamingSqlSqlTest;
+import com.sdu.streaming.warehouse.utils.StreamingSqlSqlTest;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -37,8 +37,13 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     private transient StatefulRedisConnection<byte[], byte[]> connection;
 
     private transient NoahArkRedisBufferQueue<NoahArkRedisData<?>> bufferQueue;
+
+    // async write
     private transient ScheduledExecutorService executor;
     private transient ScheduledFuture scheduledFuture;
+
+    // sync write
+    private transient long latestFlushTimestamp;
 
     private transient volatile boolean closed = false;
 
@@ -54,26 +59,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
         LOG.info("task[{} / {}] start initialize redis connection",
                 getRuntimeContext().getIndexOfThisSubtask(), getRuntimeContext().getNumberOfParallelSubtasks());
         converter.open();
-        bufferQueue = new NoahArkRedisBufferQueue<>();
-        executor = Executors.newScheduledThreadPool(1, new ExecutorThreadFactory("redis-sink-flusher"));
-        scheduledFuture = executor.scheduleWithFixedDelay(
-                () -> {
-                    if (closed) {
-                        return;
-                    }
-                    try {
-                        flush();
-                    } catch (Exception e) {
-                        // fail the sink and skip the rest of the items
-                        // if the failure handler decides to throw an exception
-                        failureThrowable.compareAndSet(null, e);
-                    }
-                },
-                writeOptions.getBufferFlushInterval(),
-                writeOptions.getBufferFlushInterval(),
-                TimeUnit.SECONDS
-        );
-
+        initialize();
         client = RedisClient.create(writeOptions.getClusterName());
         connection = client.connect(new ByteArrayCodec());
         connection.setAutoFlushCommands(false);
@@ -96,9 +82,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     public void invoke(T value, Context context) throws Exception {
         checkErrorAndRethrow();
         bufferQueue.buffer(converter.serialize(value));
-        if (bufferQueue.bufferSize() >= writeOptions.getBufferFlushMaxSize()) {
-            flush();
-        }
+        checkIfTriggerBufferFlush();
     }
 
     private void flush() {
@@ -132,7 +116,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
             client.shutdownAsync();
             connection.closeAsync();
         }
-        if (scheduledFuture != null) {
+        if (writeOptions.isAsyncWrite() && scheduledFuture != null) {
             scheduledFuture.cancel(false);
             if (executor != null) {
                 executor.shutdownNow();
@@ -140,5 +124,44 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
         }
     }
 
+    private void initialize() {
+        if (writeOptions.isAsyncWrite()) {
+            bufferQueue = new NoahArkRedisAsyncBufferQueue<>();
+            executor = Executors.newScheduledThreadPool(1, new ExecutorThreadFactory("redis-sink-flusher"));
+            scheduledFuture = executor.scheduleWithFixedDelay(
+                    () -> {
+                        if (closed) {
+                            return;
+                        }
+                        try {
+                            flush();
+                        } catch (Exception e) {
+                            // fail the sink and skip the rest of the items
+                            // if the failure handler decides to throw an exception
+                            failureThrowable.compareAndSet(null, e);
+                        }
+                    },
+                    writeOptions.getBufferFlushInterval(),
+                    writeOptions.getBufferFlushInterval(),
+                    TimeUnit.SECONDS
+            );
+            return;
+        }
+        bufferQueue = new NoahArkRedisSyncBufferQueue<>();
+        latestFlushTimestamp = System.currentTimeMillis();
+    }
 
+    private void checkIfTriggerBufferFlush() {
+        if (bufferQueue.bufferSize() >= writeOptions.getBufferFlushMaxSize()) {
+            flush();
+            return;
+        }
+        if (!writeOptions.isAsyncWrite()) {
+            long currentTimestamp = System.currentTimeMillis();
+            long interval = currentTimestamp - latestFlushTimestamp;
+            if (writeOptions.getBufferFlushInterval() <= interval) {
+                flush();
+            }
+        }
+    }
 }

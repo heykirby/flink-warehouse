@@ -1,7 +1,7 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
 import com.sdu.streaming.warehouse.deserializer.NoahArkDataSerializer;
-import com.sdu.streaming.warehouse.utils.NoahArkByteArrayDataOutput;
+import com.sdu.streaming.warehouse.utils.ByteArrayDataOutput;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 
@@ -13,7 +13,7 @@ public abstract class NoahArkAbstractRedisTypeSerializer<T> implements NoahArkRe
     @Override
     public byte[] serializeKey(RowData rowData, String prefix, RowData.FieldGetter[] keyFieldGetters, NoahArkDataSerializer[] rowKeySerializers) throws IOException {
         Preconditions.checkArgument(keyFieldGetters.length == rowKeySerializers.length);
-        NoahArkByteArrayDataOutput out = new NoahArkByteArrayDataOutput();
+        ByteArrayDataOutput out = new ByteArrayDataOutput();
         byte[] prefixBytes = prefix.getBytes(StandardCharsets.UTF_8);
         out.writeInt(prefixBytes.length);
         out.write(prefixBytes);
