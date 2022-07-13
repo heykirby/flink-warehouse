@@ -42,7 +42,19 @@ public class RedisConnectorITCase extends RedisBaseTest {
 
     @Test
     public void testRedisTableRestrictSink() throws Exception {
+        StreamExecutionEnvironment execEnv = StreamExecutionEnvironment.getExecutionEnvironment();
+        StreamTableEnvironment tEnv = StreamTableEnvironment.create(execEnv, streamSettings);
+        tEnv.executeSql(productSaleTable);
+        tEnv.executeSql(productSaleSummaryTable);
 
+        String restrictSql = format(
+                "INSERT INTO %s SELECT id, sum(sales), window_start, window_end FROM TUMBLE(TABLE %s, DESCRIPTOR(%s), INTERVAL '10' SECONDS)",
+                productSaleSummaryTableName,
+                productSaleTableName,
+                "sale_time"
+        );
+
+        tEnv.executeSql(restrictSql).await();
     }
 
     @Test
