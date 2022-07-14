@@ -39,6 +39,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     private transient NoahArkRedisBufferQueue<NoahArkRedisData<?>> bufferQueue;
 
     // async write
+    private transient int batchCount = 0;
     private transient ScheduledExecutorService executor;
     private transient ScheduledFuture scheduledFuture;
 
@@ -89,7 +90,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     @Override
     public void snapshotState(FunctionSnapshotContext functionSnapshotContext) throws Exception {
         // flush buffer
-        if (bufferQueue.bufferSize() != 0) {
+        if (batchCount != 0) {
             flush();
         }
     }
@@ -98,7 +99,8 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     public void invoke(T value, Context context) throws Exception {
         checkErrorAndRethrow();
         bufferQueue.buffer(converter.serialize(value));
-        if (bufferQueue.bufferSize() >= writeOptions.getBufferFlushMaxSize()) {
+        batchCount += 1;
+        if (batchCount >= writeOptions.getBufferFlushMaxSize()) {
             flush();
         }
     }
@@ -106,6 +108,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     private void flush() {
         try {
             bufferQueue.flush(this::doFlush);
+            batchCount = 0;
         } catch (Exception e) {
             failureThrowable.compareAndSet(null, e);
         }

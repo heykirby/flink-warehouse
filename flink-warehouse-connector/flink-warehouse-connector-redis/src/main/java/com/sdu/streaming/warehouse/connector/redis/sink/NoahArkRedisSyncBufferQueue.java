@@ -13,11 +13,6 @@ public class NoahArkRedisSyncBufferQueue<T> implements NoahArkRedisBufferQueue<T
     }
 
     @Override
-    public synchronized long bufferSize() {
-        return queue.size();
-    }
-
-    @Override
     public synchronized void buffer(T data) {
         queue.add(data);
     }
