@@ -1,7 +1,7 @@
 package com.sdu.streaming.warehouse.connector.redis.sink;
 
-import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisDataType;
 import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisOptions;
+import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisDataType;
 import org.apache.flink.table.types.logical.RowType;
 
 public class NoahArkRedisWriteOptions extends NoahArkRedisOptions {
@@ -10,8 +10,6 @@ public class NoahArkRedisWriteOptions extends NoahArkRedisOptions {
     private final int bufferFlushMaxSize;
     private final int bufferFlushInterval;
     private final long expireSeconds;
-    private final boolean asyncWrite;
-
     private final int parallelism;
 
     public NoahArkRedisWriteOptions(RowType rowType,
@@ -21,13 +19,12 @@ public class NoahArkRedisWriteOptions extends NoahArkRedisOptions {
                                     int bufferFlushMaxSize,
                                     int bufferFlushInterval,
                                     long expireSeconds,
-                                    boolean asyncWrite, int parallelism) {
+                                    int parallelism) {
         super(rowType, keyPrefix, redisDataType);
         this.clusterName = clusterName;
         this.bufferFlushMaxSize = bufferFlushMaxSize;
         this.bufferFlushInterval = bufferFlushInterval;
         this.expireSeconds = expireSeconds;
-        this.asyncWrite = asyncWrite;
         this.parallelism = parallelism;
     }
 
@@ -45,10 +42,6 @@ public class NoahArkRedisWriteOptions extends NoahArkRedisOptions {
 
     public int getParallelism() {
         return parallelism;
-    }
-
-    public boolean isAsyncWrite() {
-        return asyncWrite;
     }
 
     @Override

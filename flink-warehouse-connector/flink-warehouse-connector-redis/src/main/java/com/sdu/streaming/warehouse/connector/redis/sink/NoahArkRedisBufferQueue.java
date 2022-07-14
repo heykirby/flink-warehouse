@@ -6,6 +6,8 @@ import java.util.function.Consumer;
 
 public interface NoahArkRedisBufferQueue<T> extends Serializable {
 
+
+
     long bufferSize();
 
     void buffer(T data);

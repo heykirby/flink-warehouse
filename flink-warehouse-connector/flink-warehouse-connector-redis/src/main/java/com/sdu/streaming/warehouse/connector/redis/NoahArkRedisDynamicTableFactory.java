@@ -72,7 +72,6 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
         options.add(REDIS_WRITE_BATCH_SIZE);
         options.add(REDIS_WRITE_FLUSH_INTERVAL);
         options.add(REDIS_WRITE_PARALLELISM);
-        options.add(REDIS_WRITE_FLUSH_ASYNCABLE);
         // read
         options.add(REDIS_READ_ASYNCABLE);
         options.add(REDIS_READ_RETRIES);
@@ -110,7 +109,6 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
                 tableOption.get(REDIS_WRITE_BATCH_SIZE),
                 tableOption.get(REDIS_WRITE_FLUSH_INTERVAL),
                 tableOption.get(REDIS_EXPIRE_SECONDS),
-                tableOption.get(REDIS_WRITE_FLUSH_ASYNCABLE),
                 tableOption.get(REDIS_WRITE_PARALLELISM)
         );
     }

@@ -42,9 +42,6 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     private transient ScheduledExecutorService executor;
     private transient ScheduledFuture scheduledFuture;
 
-    // sync write
-    private transient long latestFlushTimestamp;
-
     private transient volatile boolean closed = false;
 
     private final AtomicReference<Throwable> failureThrowable = new AtomicReference<>();
@@ -59,7 +56,26 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
         LOG.info("task[{} / {}] start initialize redis connection",
                 getRuntimeContext().getIndexOfThisSubtask(), getRuntimeContext().getNumberOfParallelSubtasks());
         converter.open();
-        initialize();
+        bufferQueue = new NoahArkRedisSyncBufferQueue<>();
+        if (writeOptions.getBufferFlushInterval() != 0 && writeOptions.getBufferFlushMaxSize() != 1) {
+            executor = Executors.newScheduledThreadPool(1, new ExecutorThreadFactory("redis-sink-flusher"));
+            scheduledFuture = executor.scheduleWithFixedDelay(
+                    () -> {
+                        if (!closed) {
+                            try {
+                                flush();
+                            } catch (Exception e) {
+                                // fail the sink and skip the rest of the items
+                                // if the failure handler decides to throw an exception
+                                failureThrowable.compareAndSet(null, e);
+                            }
+                        }
+                    },
+                    writeOptions.getBufferFlushInterval(),
+                    writeOptions.getBufferFlushInterval(),
+                    TimeUnit.SECONDS
+            );
+        }
         client = RedisClient.create(writeOptions.getClusterName());
         connection = client.connect(new ByteArrayCodec());
         connection.setAutoFlushCommands(false);
@@ -82,7 +98,9 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     public void invoke(T value, Context context) throws Exception {
         checkErrorAndRethrow();
         bufferQueue.buffer(converter.serialize(value));
-        checkIfTriggerBufferFlush();
+        if (bufferQueue.bufferSize() >= writeOptions.getBufferFlushMaxSize()) {
+            flush();
+        }
     }
 
     private void flush() {
@@ -112,55 +130,14 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     @Override
     public void close() throws Exception {
         closed = true;
-        if (client != null) {
-            client.shutdownAsync();
-            connection.closeAsync();
+        if (connection != null) {
+            connection.close();
+            client.shutdown();
         }
-        if (writeOptions.isAsyncWrite() && scheduledFuture != null) {
+        if (scheduledFuture != null) {
             scheduledFuture.cancel(false);
             if (executor != null) {
                 executor.shutdownNow();
-            }
-        }
-    }
-
-    private void initialize() {
-        if (writeOptions.isAsyncWrite()) {
-            bufferQueue = new NoahArkRedisAsyncBufferQueue<>();
-            executor = Executors.newScheduledThreadPool(1, new ExecutorThreadFactory("redis-sink-flusher"));
-            scheduledFuture = executor.scheduleWithFixedDelay(
-                    () -> {
-                        if (closed) {
-                            return;
-                        }
-                        try {
-                            flush();
-                        } catch (Exception e) {
-                            // fail the sink and skip the rest of the items
-                            // if the failure handler decides to throw an exception
-                            failureThrowable.compareAndSet(null, e);
-                        }
-                    },
-                    writeOptions.getBufferFlushInterval(),
-                    writeOptions.getBufferFlushInterval(),
-                    TimeUnit.SECONDS
-            );
-            return;
-        }
-        bufferQueue = new NoahArkRedisSyncBufferQueue<>();
-        latestFlushTimestamp = System.currentTimeMillis();
-    }
-
-    private void checkIfTriggerBufferFlush() {
-        if (bufferQueue.bufferSize() >= writeOptions.getBufferFlushMaxSize()) {
-            flush();
-            return;
-        }
-        if (!writeOptions.isAsyncWrite()) {
-            long currentTimestamp = System.currentTimeMillis();
-            long interval = currentTimestamp - latestFlushTimestamp;
-            if (writeOptions.getBufferFlushInterval() <= interval) {
-                flush();
             }
         }
     }
