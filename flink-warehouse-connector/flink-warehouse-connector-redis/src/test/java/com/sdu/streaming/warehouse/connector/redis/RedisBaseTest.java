@@ -44,7 +44,7 @@ public abstract class RedisBaseTest {
         productMessageRedisTableProperties.put("connector", "redis");
         productMessageRedisTableProperties.put("redis-address", "redis://127.0.0.1:6379");
         productMessageRedisTableProperties.put("redis-key-prefix", "CN");
-        productMessageRedisTableProperties.put("redis-write-flush-asyncable", "false");
+        productMessageRedisTableProperties.put("redis-write-batch-size", "1");
         this.productMessageRedisTableName = "product";
         this.productMessageRedisTableMetadata = TableMetadata.builder()
                 .name(this.productMessageRedisTableName)
@@ -72,19 +72,20 @@ public abstract class RedisBaseTest {
                 TableColumnMetadata.builder().name("id").type("BIGINT").build(),
                 TableColumnMetadata.builder().name("oid").type("STRING").build(),
                 TableColumnMetadata.builder().name("sales").type("INT").build(),
-                TableColumnMetadata.builder().name("sale_time").type("AS PROCTIME()").build()
+                TableColumnMetadata.builder().name("sale_time").type("AS PROCTIME()").nullable(true).build()
         );
-        TableWatermarkMetadata productSaleTableWatermark = TableWatermarkMetadata.builder()
-                .eventTimeColumn("sale_time")
-                .strategy("sale_time - INTERVAL '5' SECOND")
-                .build();
+//        TableWatermarkMetadata productSaleTableWatermark = TableWatermarkMetadata.builder()
+//                .eventTimeColumn("sale_time")
+//                .strategy("sale_time - INTERVAL '5' SECOND")
+//                .build();
+        productTableProperties.remove("number-of-rows");
         this.productSaleTableName = "product_sales";
         this.productSaleTableMetadata = TableMetadata.builder()
                 .name(this.productSaleTableName)
                 .columns(productSaleTableColumns)
                 .primaryKeys("oid")
                 .properties(productTableProperties)
-                .watermark(productSaleTableWatermark)
+//                .watermark(productSaleTableWatermark)
                 .build();
 
         // product sale summary table
@@ -98,6 +99,7 @@ public abstract class RedisBaseTest {
         productSaleSummaryTableProperties.put("connector", "redis");
         productSaleSummaryTableProperties.put("redis-address", "redis://127.0.0.1:6379");
         productSaleSummaryTableProperties.put("redis-key-prefix", "PS");
+        productSaleSummaryTableProperties.put("redis-write-batch-size", "1");
         this.productSaleSummaryTableName = "product_sale_summary";
         this.productSaleSummaryTableMetadata = TableMetadata.builder()
                 .name(this.productSaleSummaryTableName)

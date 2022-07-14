@@ -48,7 +48,7 @@ public class RedisConnectorITCase extends RedisBaseTest {
         tEnv.executeSql(productSaleSummaryTable);
 
         String restrictSql = format(
-                "INSERT INTO %s SELECT id, sum(sales), window_start, window_end FROM TUMBLE(TABLE %s, DESCRIPTOR(%s), INTERVAL '10' SECONDS)",
+                "INSERT INTO %s SELECT id, sum(sales), window_start, window_end FROM TABLE(TUMBLE(TABLE %s, DESCRIPTOR(%s), INTERVAL '2' SECONDS)) GROUP BY id, window_start, window_end",
                 productSaleSummaryTableName,
                 productSaleTableName,
                 "sale_time"
@@ -65,7 +65,7 @@ public class RedisConnectorITCase extends RedisBaseTest {
         tEnv.executeSql(productMessageRedisTable);
 
         String lookupJoinSql = format(
-                "SELECT oid, p.id, p.name, p.address, sales, sale_time FROM %s LEFT JOIN %s FOR SYSTEM_TIME AS OF s.sale_time AS p ON s.id = p.id",
+                "SELECT oid, p.id, p.name, p.address, sales, sale_time FROM %s AS s LEFT JOIN %s FOR SYSTEM_TIME AS OF s.sale_time AS p ON s.id = p.id",
                 productSaleTableName,
                 productMessageRedisTableName
         );
