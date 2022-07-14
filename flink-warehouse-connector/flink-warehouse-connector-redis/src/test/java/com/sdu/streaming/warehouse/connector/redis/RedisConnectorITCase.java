@@ -48,7 +48,7 @@ public class RedisConnectorITCase extends RedisBaseTest {
         tEnv.executeSql(productSaleSummaryTable);
 
         String restrictSql = format(
-                "INSERT INTO %s SELECT id, sum(sales), window_start, window_end FROM TABLE(TUMBLE(TABLE %s, DESCRIPTOR(%s), INTERVAL '2' SECONDS)) GROUP BY id, window_start, window_end",
+                "INSERT INTO %s SELECT id, sum(sales), window_start, window_end FROM TABLE(TUMBLE(TABLE %s, DESCRIPTOR(%s), INTERVAL '1' SECONDS)) GROUP BY id, window_start, window_end",
                 productSaleSummaryTableName,
                 productSaleTableName,
                 "sale_time"

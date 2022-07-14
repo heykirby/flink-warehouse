@@ -56,6 +56,7 @@ public abstract class RedisBaseTest {
         Map<String, String> productTableProperties = Maps.newHashMap();
         productTableProperties.put("connector", "datagen");
         productTableProperties.put("number-of-rows", "10");
+        productTableProperties.put("rows-per-second", "2");
         productTableProperties.put("fields.id.min", "1");
         productTableProperties.put("fields.id.max", "10");
 
@@ -74,18 +75,13 @@ public abstract class RedisBaseTest {
                 TableColumnMetadata.builder().name("sales").type("INT").build(),
                 TableColumnMetadata.builder().name("sale_time").type("AS PROCTIME()").nullable(true).build()
         );
-//        TableWatermarkMetadata productSaleTableWatermark = TableWatermarkMetadata.builder()
-//                .eventTimeColumn("sale_time")
-//                .strategy("sale_time - INTERVAL '5' SECOND")
-//                .build();
-        productTableProperties.remove("number-of-rows");
+        productTableProperties.put("rows-per-second", "2");
         this.productSaleTableName = "product_sales";
         this.productSaleTableMetadata = TableMetadata.builder()
                 .name(this.productSaleTableName)
                 .columns(productSaleTableColumns)
                 .primaryKeys("oid")
                 .properties(productTableProperties)
-//                .watermark(productSaleTableWatermark)
                 .build();
 
         // product sale summary table
