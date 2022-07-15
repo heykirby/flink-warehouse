@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -39,7 +40,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     private transient NoahArkRedisBufferQueue<NoahArkRedisData<?>> bufferQueue;
 
     // async write
-    private transient int batchCount = 0;
+    private transient AtomicInteger batchCount = new AtomicInteger(0);
     private transient ScheduledExecutorService executor;
     private transient ScheduledFuture scheduledFuture;
 
@@ -90,7 +91,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     @Override
     public void snapshotState(FunctionSnapshotContext functionSnapshotContext) throws Exception {
         // flush buffer
-        if (batchCount != 0) {
+        if (batchCount.get() != 0) {
             flush();
         }
     }
@@ -99,8 +100,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     public void invoke(T value, Context context) throws Exception {
         checkErrorAndRethrow();
         bufferQueue.buffer(converter.serialize(value));
-        batchCount += 1;
-        if (batchCount >= writeOptions.getBufferFlushMaxSize()) {
+        if (batchCount.incrementAndGet() >= writeOptions.getBufferFlushMaxSize()) {
             flush();
         }
     }
@@ -108,7 +108,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
     private void flush() {
         try {
             bufferQueue.flush(this::doFlush);
-            batchCount = 0;
+            batchCount.set(0);
         } catch (Exception e) {
             failureThrowable.compareAndSet(null, e);
         }
