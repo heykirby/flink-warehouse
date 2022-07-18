@@ -1,6 +1,6 @@
 package com.sdu.streaming.warehouse.connector.redis.source;
 
-import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRuntimeConverter;
+import com.sdu.streaming.warehouse.connector.redis.RedisRuntimeConverter;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.ByteArrayCodec;
@@ -22,18 +22,18 @@ import java.util.concurrent.TimeUnit;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
-public class NoahArkRedisAsyncTableFunction extends AsyncTableFunction<RowData> {
+public class RedisAsyncTableFunction extends AsyncTableFunction<RowData> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(NoahArkRedisAsyncTableFunction.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RedisAsyncTableFunction.class);
 
-    private final NoahArkRedisReadOptions readOptions;
-    private final NoahArkRedisRuntimeConverter<RowData> converter;
+    private final RedisReadOptions readOptions;
+    private final RedisRuntimeConverter<RowData> converter;
 
     private transient RedisClient client;
     private transient StatefulRedisConnection<byte[], byte[]> connection;
     private transient Cache<RowData, RowData> cache;
 
-    public NoahArkRedisAsyncTableFunction(NoahArkRedisReadOptions readOptions, NoahArkRedisRuntimeConverter<RowData> converter) {
+    public RedisAsyncTableFunction(RedisReadOptions readOptions, RedisRuntimeConverter<RowData> converter) {
         this.readOptions = readOptions;
         this.converter = converter;
     }

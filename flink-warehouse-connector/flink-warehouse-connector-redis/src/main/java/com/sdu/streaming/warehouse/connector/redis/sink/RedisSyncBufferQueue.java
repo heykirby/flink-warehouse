@@ -4,11 +4,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class NoahArkRedisSyncBufferQueue<T> implements NoahArkRedisBufferQueue<T>  {
+public class RedisSyncBufferQueue<T> implements RedisBufferQueue<T> {
 
     private List<T> queue;
 
-    public NoahArkRedisSyncBufferQueue() {
+    public RedisSyncBufferQueue() {
         this.queue = new LinkedList<>();
     }
 

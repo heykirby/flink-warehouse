@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.function.Consumer;
 
-public interface NoahArkRedisBufferQueue<T> extends Serializable {
+public interface RedisBufferQueue<T> extends Serializable {
 
     void buffer(T data);
 

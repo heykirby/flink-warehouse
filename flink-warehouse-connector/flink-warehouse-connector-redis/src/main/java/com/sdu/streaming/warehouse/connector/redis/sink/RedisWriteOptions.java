@@ -1,10 +1,10 @@
 package com.sdu.streaming.warehouse.connector.redis.sink;
 
-import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisOptions;
-import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisDataType;
+import com.sdu.streaming.warehouse.connector.redis.RedisOptions;
+import com.sdu.streaming.warehouse.connector.redis.entry.RedisDataType;
 import org.apache.flink.table.types.logical.RowType;
 
-public class NoahArkRedisWriteOptions extends NoahArkRedisOptions {
+public class RedisWriteOptions extends RedisOptions {
 
     private final String clusterName;
     private final int bufferFlushMaxSize;
@@ -12,14 +12,14 @@ public class NoahArkRedisWriteOptions extends NoahArkRedisOptions {
     private final long expireSeconds;
     private final int parallelism;
 
-    public NoahArkRedisWriteOptions(RowType rowType,
-                                    String keyPrefix,
-                                    NoahArkRedisDataType redisDataType,
-                                    String clusterName,
-                                    int bufferFlushMaxSize,
-                                    int bufferFlushInterval,
-                                    long expireSeconds,
-                                    int parallelism) {
+    public RedisWriteOptions(RowType rowType,
+                             String keyPrefix,
+                             RedisDataType redisDataType,
+                             String clusterName,
+                             int bufferFlushMaxSize,
+                             int bufferFlushInterval,
+                             long expireSeconds,
+                             int parallelism) {
         super(rowType, keyPrefix, redisDataType);
         this.clusterName = clusterName;
         this.bufferFlushMaxSize = bufferFlushMaxSize;

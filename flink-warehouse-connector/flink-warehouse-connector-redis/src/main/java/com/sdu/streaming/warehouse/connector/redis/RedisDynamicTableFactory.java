@@ -1,9 +1,9 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
-import com.sdu.streaming.warehouse.connector.redis.sink.NoahArkRedisDynamicTableSink;
-import com.sdu.streaming.warehouse.connector.redis.sink.NoahArkRedisWriteOptions;
-import com.sdu.streaming.warehouse.connector.redis.source.NoahArkRedisDynamicTableSource;
-import com.sdu.streaming.warehouse.connector.redis.source.NoahArkRedisReadOptions;
+import com.sdu.streaming.warehouse.connector.redis.sink.RedisDynamicTableSink;
+import com.sdu.streaming.warehouse.connector.redis.sink.RedisWriteOptions;
+import com.sdu.streaming.warehouse.connector.redis.source.RedisDynamicTableSource;
+import com.sdu.streaming.warehouse.connector.redis.source.RedisReadOptions;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -21,10 +21,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.sdu.streaming.warehouse.connector.redis.NoahArkRedisConfigOptions.*;
+import static com.sdu.streaming.warehouse.connector.redis.RedisConfigOptions.*;
 import static org.apache.flink.table.factories.FactoryUtil.createTableFactoryHelper;
 
-public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
+public class RedisDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     private static final String IDENTIFIER = "redis";
 
@@ -38,10 +38,10 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
         FactoryUtil.TableFactoryHelper helper = createTableFactoryHelper(this, context);
         helper.validate();
 
-        NoahArkRedisReadOptions readOptions = getRedisReadOptions(helper.getOptions(), context);
+        RedisReadOptions readOptions = getRedisReadOptions(helper.getOptions(), context);
         TableSchema tableSchema = context.getCatalogTable().getSchema();
 
-        return new NoahArkRedisDynamicTableSource(tableSchema, readOptions);
+        return new RedisDynamicTableSource(tableSchema, readOptions);
     }
 
     @Override
@@ -49,10 +49,10 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
         FactoryUtil.TableFactoryHelper helper = createTableFactoryHelper(this, context);
         helper.validate();
 
-        NoahArkRedisWriteOptions writeOptions = getRedisWriteOptions(helper.getOptions(), context);
+        RedisWriteOptions writeOptions = getRedisWriteOptions(helper.getOptions(), context);
         int[] primaryKeyIndexes = getPrimaryKeyIndexes(context.getCatalogTable().getResolvedSchema());
 
-        return new NoahArkRedisDynamicTableSink(writeOptions, primaryKeyIndexes);
+        return new RedisDynamicTableSink(writeOptions, primaryKeyIndexes);
     }
 
     @Override
@@ -82,10 +82,10 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
         return options;
     }
 
-    private static NoahArkRedisReadOptions getRedisReadOptions(ReadableConfig tableOption, Context context) {
+    private static RedisReadOptions getRedisReadOptions(ReadableConfig tableOption, Context context) {
         DataType rowDataType =  context.getCatalogTable().getSchema().toPhysicalRowDataType();
 
-        return new NoahArkRedisReadOptions(
+        return new RedisReadOptions(
                 (RowType) rowDataType.getLogicalType(),
                 tableOption.get(REDIS_KEY_PREFIX),
                 tableOption.get(REDIS_DATA_TYPE),
@@ -98,10 +98,10 @@ public class NoahArkRedisDynamicTableFactory implements DynamicTableSourceFactor
         );
     }
 
-    private static NoahArkRedisWriteOptions getRedisWriteOptions(ReadableConfig tableOption, Context context) {
+    private static RedisWriteOptions getRedisWriteOptions(ReadableConfig tableOption, Context context) {
         DataType rowDataType =  context.getCatalogTable().getSchema().toPhysicalRowDataType();
 
-        return new NoahArkRedisWriteOptions(
+        return new RedisWriteOptions(
                 (RowType) rowDataType.getLogicalType(),
                 tableOption.get(REDIS_KEY_PREFIX),
                 tableOption.get(REDIS_DATA_TYPE),

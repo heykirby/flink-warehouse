@@ -1,7 +1,7 @@
 package com.sdu.streaming.warehouse.connector.redis.sink;
 
-import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRuntimeConverter;
-import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisData;
+import com.sdu.streaming.warehouse.connector.redis.RedisRuntimeConverter;
+import com.sdu.streaming.warehouse.connector.redis.entry.RedisData;
 import com.sdu.streaming.warehouse.utils.MoreFutures;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisFuture;
@@ -26,18 +26,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 
-public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements CheckpointedFunction {
+public class RedisSinkFunction<T> extends RichSinkFunction<T> implements CheckpointedFunction {
 
-    private static final Logger LOG = LoggerFactory.getLogger(NoahArkRedisSinkFunction.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RedisSinkFunction.class);
 
-    private final NoahArkRedisWriteOptions writeOptions;
-    private final NoahArkRedisRuntimeConverter<T> converter;
+    private final RedisWriteOptions writeOptions;
+    private final RedisRuntimeConverter<T> converter;
 
     // 非集群模式
     private transient RedisClient client;
     private transient StatefulRedisConnection<byte[], byte[]> connection;
 
-    private transient NoahArkRedisBufferQueue<NoahArkRedisData<?>> bufferQueue;
+    private transient RedisBufferQueue<RedisData<?>> bufferQueue;
 
     // async write
     private transient AtomicInteger batchCount = new AtomicInteger(0);
@@ -48,7 +48,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
 
     private final AtomicReference<Throwable> failureThrowable = new AtomicReference<>();
 
-    public NoahArkRedisSinkFunction(NoahArkRedisWriteOptions writeOptions, NoahArkRedisRuntimeConverter<T> converter) {
+    public RedisSinkFunction(RedisWriteOptions writeOptions, RedisRuntimeConverter<T> converter) {
         this.writeOptions = writeOptions;
         this.converter = converter;
     }
@@ -58,7 +58,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
         LOG.info("task[{} / {}] start initialize redis connection",
                 getRuntimeContext().getIndexOfThisSubtask(), getRuntimeContext().getNumberOfParallelSubtasks());
         converter.open();
-        bufferQueue = new NoahArkRedisSyncBufferQueue<>();
+        bufferQueue = new RedisSyncBufferQueue<>();
         if (writeOptions.getBufferFlushInterval() != 0 && writeOptions.getBufferFlushMaxSize() != 1) {
             executor = Executors.newScheduledThreadPool(1, new ExecutorThreadFactory("redis-sink-flusher"));
             scheduledFuture = executor.scheduleWithFixedDelay(
@@ -115,7 +115,7 @@ public class NoahArkRedisSinkFunction<T> extends RichSinkFunction<T> implements 
         checkErrorAndRethrow();
     }
 
-    private void doFlush(List<NoahArkRedisData<?>> bufferData) {
+    private void doFlush(List<RedisData<?>> bufferData) {
         // AsyncCommand + FlushCommands --> Redis Pipeline
         final List<RedisFuture<?>> result = new LinkedList<>();
         bufferData.forEach(redisData -> result.addAll(redisData.save(connection)));

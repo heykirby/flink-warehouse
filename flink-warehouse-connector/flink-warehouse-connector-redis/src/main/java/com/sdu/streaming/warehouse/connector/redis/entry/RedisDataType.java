@@ -1,9 +1,9 @@
 package com.sdu.streaming.warehouse.connector.redis.entry;
 
-public enum NoahArkRedisDataType {
+public enum RedisDataType {
 
     STRING, LIST, MAP;
 
-    NoahArkRedisDataType() { }
+    RedisDataType() { }
 
 }

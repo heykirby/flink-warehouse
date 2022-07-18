@@ -10,42 +10,37 @@ import org.apache.flink.util.Preconditions;
 
 import java.io.IOException;
 
-public class NoahArkRedisListTypeSerializer extends NoahArkAbstractRedisTypeSerializer<byte[][]> {
+public class RedisStringTypeSerializer extends AbstractRedisTypeSerializer<byte[]> {
 
-    public static final NoahArkRedisListTypeSerializer REDIS_LIST_DESERIALIZER =
-            new NoahArkRedisListTypeSerializer();
+    public static final RedisStringTypeSerializer REDIS_STRING_DESERIALIZER =
+            new RedisStringTypeSerializer();
 
-    private NoahArkRedisListTypeSerializer() { }
+    private RedisStringTypeSerializer() { }
 
     @Override
-    public byte[][] serializeValue(RowData rowData, String[] fieldNames, RowData.FieldGetter[] rowFieldGetters, NoahArkDataSerializer[] rowFieldSerializers) throws IOException {
+    public byte[] serializeValue(RowData rowData, String[] fieldNames, RowData.FieldGetter[] rowFieldGetters, NoahArkDataSerializer[] rowFieldSerializers) throws IOException {
         Preconditions.checkArgument(rowFieldGetters.length == rowFieldSerializers.length);
 
         ByteArrayDataOutput out = new ByteArrayDataOutput();
-        byte[][] values = new byte[rowData.getArity()][];
         for (int pos = 0; pos < rowData.getArity(); ++pos) {
             Object fieldValue = rowFieldGetters[pos].getFieldOrNull(rowData);
             rowFieldSerializers[pos].serializer(fieldValue, out);
-            values[pos] = out.toByteArray();
-            out.reset();
         }
-        return values;
-
+        return out.toByteArray();
     }
 
     @Override
-    public RowData deserializeValue(byte[][] bytes, String[] fieldNames, NoahArkDataDeserializer[] rowFieldDeserializers) throws IOException {
-        Preconditions.checkArgument(bytes.length == fieldNames.length);
+    public RowData deserializeValue(byte[] bytes, String[] fieldNames, NoahArkDataDeserializer[] rowFieldDeserializers) throws IOException {
+        if (bytes == null || bytes.length == 0) {
+            return null;
+        }
         Preconditions.checkArgument(fieldNames.length == rowFieldDeserializers.length);
-
         GenericRowData rowData = new GenericRowData(fieldNames.length);
+        ByteArrayDataInput input = new ByteArrayDataInput(bytes);
         for (int pos = 0; pos < fieldNames.length; ++pos) {
-            // TODO: 优化频繁实例化
-            ByteArrayDataInput input = new ByteArrayDataInput(bytes[pos]);
             Object fieldValue = rowFieldDeserializers[pos].deserializer(input);
             rowData.setField(pos, fieldValue);
         }
-
         return rowData;
     }
 

@@ -4,18 +4,14 @@ import com.sdu.streaming.warehouse.entry.Lineage;
 import com.sdu.streaming.warehouse.entry.StorageType;
 import com.sdu.streaming.warehouse.entry.TableMetadata;
 
+import java.util.*;
+
 import static com.sdu.streaming.warehouse.entry.TaskType.COMPUTE;
 import static com.sdu.streaming.warehouse.entry.TaskType.SYNC;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-public class KafkaTableSqlParseHandler implements SqlParseHandler {
+public class KafkaTableSqlParseHandler extends AbstractSqlParseHandler {
 
     public static final KafkaTableSqlParseHandler INSTANCE = new KafkaTableSqlParseHandler();
 

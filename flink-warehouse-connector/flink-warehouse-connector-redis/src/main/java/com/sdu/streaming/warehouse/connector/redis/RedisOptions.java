@@ -1,17 +1,17 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
-import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisDataType;
+import com.sdu.streaming.warehouse.connector.redis.entry.RedisDataType;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.io.Serializable;
 
-public abstract class NoahArkRedisOptions implements Serializable {
+public abstract class RedisOptions implements Serializable {
 
     private final RowType rowType;
     private final String keyPrefix;
-    private final NoahArkRedisDataType redisDataType;
+    private final RedisDataType redisDataType;
 
-    public NoahArkRedisOptions(RowType rowType, String keyPrefix, NoahArkRedisDataType redisDataType) {
+    public RedisOptions(RowType rowType, String keyPrefix, RedisDataType redisDataType) {
         this.rowType = rowType;
         this.keyPrefix = keyPrefix;
         this.redisDataType = redisDataType;
@@ -25,7 +25,7 @@ public abstract class NoahArkRedisOptions implements Serializable {
         return keyPrefix;
     }
 
-    public NoahArkRedisDataType getRedisDataType() {
+    public RedisDataType getRedisDataType() {
         return redisDataType;
     }
 

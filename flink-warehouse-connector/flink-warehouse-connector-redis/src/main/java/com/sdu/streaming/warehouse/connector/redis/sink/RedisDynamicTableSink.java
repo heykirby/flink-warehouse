@@ -1,18 +1,18 @@
 package com.sdu.streaming.warehouse.connector.redis.sink;
 
-import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRowDataRuntimeConverter;
+import com.sdu.streaming.warehouse.connector.redis.RedisRowDataRuntimeConverter;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
-public class NoahArkRedisDynamicTableSink implements DynamicTableSink {
+public class RedisDynamicTableSink implements DynamicTableSink {
 
     private final int[] primaryKeyIndexes;
-    private final NoahArkRedisWriteOptions writeOptions;
+    private final RedisWriteOptions writeOptions;
 
-    public NoahArkRedisDynamicTableSink(NoahArkRedisWriteOptions writeOptions, int[] primaryKeyIndexes) {
+    public RedisDynamicTableSink(RedisWriteOptions writeOptions, int[] primaryKeyIndexes) {
         this.writeOptions = writeOptions;
         this.primaryKeyIndexes = primaryKeyIndexes;
     }
@@ -23,8 +23,8 @@ public class NoahArkRedisDynamicTableSink implements DynamicTableSink {
         for (int i = 0; i < primaryKeyIndexes.length; ++i) {
             keyIndexes[i] = new int[] {primaryKeyIndexes[i], primaryKeyIndexes[i]};
         }
-        NoahArkRedisSinkFunction<RowData> sinkFunction = new NoahArkRedisSinkFunction<>(writeOptions,
-                new NoahArkRedisRowDataRuntimeConverter(writeOptions, keyIndexes));
+        RedisSinkFunction<RowData> sinkFunction = new RedisSinkFunction<>(writeOptions,
+                new RedisRowDataRuntimeConverter(writeOptions, keyIndexes));
         return SinkFunctionProvider.of(sinkFunction, writeOptions.getParallelism());
     }
 
@@ -41,7 +41,7 @@ public class NoahArkRedisDynamicTableSink implements DynamicTableSink {
 
     @Override
     public DynamicTableSink copy() {
-        return new NoahArkRedisDynamicTableSink(writeOptions, primaryKeyIndexes);
+        return new RedisDynamicTableSink(writeOptions, primaryKeyIndexes);
     }
 
     @Override

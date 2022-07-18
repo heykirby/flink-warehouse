@@ -1,1 +1,1 @@
-com.sdu.streaming.warehouse.connector.redis.NoahArkRedisDynamicTableFactory
+com.sdu.streaming.warehouse.connector.redis.RedisDynamicTableFactory

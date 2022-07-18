@@ -1,18 +1,13 @@
 package com.sdu.streaming.warehouse.sql;
 
-import com.sdu.streaming.warehouse.entry.Lineage;
 import com.sdu.streaming.warehouse.entry.StorageType;
 import com.sdu.streaming.warehouse.entry.TableMetadata;
 
-import static com.sdu.streaming.warehouse.entry.StorageType.HUDI;
-import static com.sdu.streaming.warehouse.entry.TaskType.SYNC;
-import static java.util.stream.Collectors.toList;
-
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-public class HudiTableSqlParseHandler implements SqlParseHandler {
+import static com.sdu.streaming.warehouse.entry.StorageType.HUDI;
+
+public class HudiTableSqlParseHandler extends AbstractSqlParseHandler {
 
     public static final HudiTableSqlParseHandler INSTANCE = new HudiTableSqlParseHandler();
 
@@ -34,13 +29,6 @@ public class HudiTableSqlParseHandler implements SqlParseHandler {
             throw new RuntimeException("cant find 'hoodie.table.name' property for table '" + name + "'");
         }
         return new TableMetadata(supportedType(), name, database, table, properties);
-    }
-
-    @Override
-    public List<Lineage> createTableLineages(Set<TableMetadata> sources, TableMetadata sink) {
-        return sources.stream()
-                .map(source -> new Lineage(SYNC, source, sink))
-                .collect(toList());
     }
 
     @Override

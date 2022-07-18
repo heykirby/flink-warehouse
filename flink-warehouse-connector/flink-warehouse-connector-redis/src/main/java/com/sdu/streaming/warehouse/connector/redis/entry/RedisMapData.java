@@ -1,6 +1,6 @@
 package com.sdu.streaming.warehouse.connector.redis.entry;
 
-import com.sdu.streaming.warehouse.connector.redis.NoahArkAbstractRedisData;
+import com.sdu.streaming.warehouse.connector.redis.AbstractRedisData;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
@@ -10,9 +10,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class NoahArkRedisMapData extends NoahArkAbstractRedisData<Map<byte[], byte[]>> {
+public class RedisMapData extends AbstractRedisData<Map<byte[], byte[]>> {
 
-    public NoahArkRedisMapData(long expireTime, RowKind kind, byte[] keys, Map<byte[], byte[]> values) {
+    public RedisMapData(long expireTime, RowKind kind, byte[] keys, Map<byte[], byte[]> values) {
         super(expireTime, kind, keys, values);
     }
 

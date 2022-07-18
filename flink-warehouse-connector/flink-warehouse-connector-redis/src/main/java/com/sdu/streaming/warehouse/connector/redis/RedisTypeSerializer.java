@@ -7,7 +7,7 @@ import org.apache.flink.table.data.RowData;
 import java.io.IOException;
 import java.io.Serializable;
 
-public interface NoahArkRedisTypeSerializer<T> extends Serializable {
+public interface RedisTypeSerializer<T> extends Serializable {
 
     byte[] serializeKey(RowData rowData, String prefix, RowData.FieldGetter[] keyFieldGetters, NoahArkDataSerializer[] rowKeySerializers) throws IOException;
 

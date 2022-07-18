@@ -13,14 +13,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-import static com.sdu.streaming.warehouse.connector.redis.NoahArkRedisListTypeSerializer.REDIS_LIST_DESERIALIZER;
-import static com.sdu.streaming.warehouse.connector.redis.NoahArkRedisMapTypeSerializer.REDIS_MAP_DESERIALIZER;
-import static com.sdu.streaming.warehouse.connector.redis.NoahArkRedisStringTypeSerializer.REDIS_STRING_DESERIALIZER;
+import static com.sdu.streaming.warehouse.connector.redis.RedisListTypeSerializer.REDIS_LIST_DESERIALIZER;
+import static com.sdu.streaming.warehouse.connector.redis.RedisMapTypeSerializer.REDIS_MAP_DESERIALIZER;
+import static com.sdu.streaming.warehouse.connector.redis.RedisStringTypeSerializer.REDIS_STRING_DESERIALIZER;
 import static com.sdu.streaming.warehouse.deserializer.NoahArkDataDeserializer.createDataDeserializer;
 import static com.sdu.streaming.warehouse.deserializer.NoahArkDataSerializer.createDataSerializer;
 
 
-public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeConverter<RowData> {
+public class RedisRowDataRuntimeConverter implements RedisRuntimeConverter<RowData> {
 
     // read:
     //  primaryKeyIndexes[i][0]: 关联条件索引位置
@@ -29,7 +29,7 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
     //  primaryKeyIndexes[i][0]: RowType中索引位置
     //  primaryKeyIndexes[i][1]: RowType中索引位置
     private final int[][] primaryKeyIndexes;
-    private final NoahArkRedisOptions redisOptions;
+    private final RedisOptions redisOptions;
 
     // primary key
     private transient NoahArkDataSerializer[] rowKeySerializers;
@@ -42,7 +42,7 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
     private transient NoahArkDataDeserializer[] rowFieldDeserializers;
     private transient String[] fieldNames;
 
-    public NoahArkRedisRowDataRuntimeConverter(NoahArkRedisOptions redisOptions, int[][] primaryKeyIndexes) {
+    public RedisRowDataRuntimeConverter(RedisOptions redisOptions, int[][] primaryKeyIndexes) {
         this.redisOptions = redisOptions;
         this.primaryKeyIndexes = primaryKeyIndexes;
     }
@@ -78,8 +78,8 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
     }
 
     @Override
-    public NoahArkRedisData<?> serialize(RowData data) throws IOException {
-        NoahArkRedisDataType redisDataType = redisOptions.getRedisDataType();
+    public RedisData<?> serialize(RowData data) throws IOException {
+        RedisDataType redisDataType = redisOptions.getRedisDataType();
         long expireSeconds = redisOptions.expireTime();
         switch (redisDataType) {
             case MAP:
@@ -90,7 +90,7 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
                         rowFieldGetters,
                         rowFieldSerializers
                 );
-                return new NoahArkRedisMapData(expireSeconds, data.getRowKind(), mapKeys, mapValues);
+                return new RedisMapData(expireSeconds, data.getRowKind(), mapKeys, mapValues);
 
             case LIST:
                 byte[] listKeys = REDIS_LIST_DESERIALIZER.serializeKey(data, redisOptions.getKeyPrefix(), rowKeyFieldGetters, rowKeySerializers);
@@ -100,7 +100,7 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
                         rowFieldGetters,
                         rowFieldSerializers
                 );
-                return new NoahArkRedisListData(expireSeconds, data.getRowKind(), listKeys, listValues);
+                return new RedisListData(expireSeconds, data.getRowKind(), listKeys, listValues);
 
             case STRING:
                 byte[] stringKeys = REDIS_STRING_DESERIALIZER.serializeKey(data, redisOptions.getKeyPrefix(), rowKeyFieldGetters, rowKeySerializers);
@@ -110,7 +110,7 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
                         rowFieldGetters,
                         rowFieldSerializers
                 );
-                return new NoahArkRedisStringData(expireSeconds, data.getRowKind(), stringKeys, stringValues);
+                return new RedisStringData(expireSeconds, data.getRowKind(), stringKeys, stringValues);
 
             default:
                 throw new UnsupportedOperationException("Unsupported redis data type: " + redisOptions.getRedisDataType());
@@ -119,7 +119,7 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
 
     @Override
     public RowData deserialize(StatefulRedisConnection<byte[], byte[]> client, RowData key) throws IOException {
-        NoahArkRedisDataType redisDataType = redisOptions.getRedisDataType();
+        RedisDataType redisDataType = redisOptions.getRedisDataType();
         String keyPrefix = redisOptions.getKeyPrefix();
         switch (redisDataType) {
             case MAP:
@@ -144,7 +144,7 @@ public class NoahArkRedisRowDataRuntimeConverter implements NoahArkRedisRuntimeC
 
     @Override
     public void asyncDeserialize(StatefulRedisConnection<byte[], byte[]> client, RowData key, BiConsumer<RowData, Throwable> resultConsumer) throws IOException{
-        NoahArkRedisDataType redisDataType = redisOptions.getRedisDataType();
+        RedisDataType redisDataType = redisOptions.getRedisDataType();
         String keyPrefix = redisOptions.getKeyPrefix();
         switch (redisDataType) {
             case MAP:

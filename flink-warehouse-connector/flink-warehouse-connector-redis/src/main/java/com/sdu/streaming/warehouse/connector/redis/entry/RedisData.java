@@ -6,7 +6,7 @@ import org.apache.flink.types.RowKind;
 
 import java.util.List;
 
-public interface NoahArkRedisData<T> {
+public interface RedisData<T> {
 
     long expireTime();
 

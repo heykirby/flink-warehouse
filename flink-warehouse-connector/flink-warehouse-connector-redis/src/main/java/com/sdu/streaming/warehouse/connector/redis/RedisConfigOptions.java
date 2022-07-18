@@ -1,14 +1,14 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
-import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisDataType;
+import com.sdu.streaming.warehouse.connector.redis.entry.RedisDataType;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
 import java.io.Serializable;
 
-public class NoahArkRedisConfigOptions implements Serializable {
+public class RedisConfigOptions implements Serializable {
 
-    private NoahArkRedisConfigOptions() { }
+    private RedisConfigOptions() { }
 
     public static final ConfigOption<String> REDIS_ADDRESS =
             ConfigOptions.key("redis-address")
@@ -16,10 +16,10 @@ public class NoahArkRedisConfigOptions implements Serializable {
                     .noDefaultValue()
                     .withDescription("redis cluster address, eg: 'redis://password@localhost:6379/0'");
 
-    public static final ConfigOption<NoahArkRedisDataType> REDIS_DATA_TYPE =
+    public static final ConfigOption<RedisDataType> REDIS_DATA_TYPE =
             ConfigOptions.key("redis-data-type")
-                    .enumType(NoahArkRedisDataType.class)
-                    .defaultValue(NoahArkRedisDataType.STRING)
+                    .enumType(RedisDataType.class)
+                    .defaultValue(RedisDataType.STRING)
                     .withDescription("redis data type, default: string");
 
     public static final ConfigOption<String> REDIS_KEY_PREFIX =

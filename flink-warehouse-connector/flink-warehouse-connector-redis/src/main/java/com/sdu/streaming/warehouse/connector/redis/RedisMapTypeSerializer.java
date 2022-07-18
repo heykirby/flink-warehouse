@@ -14,12 +14,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class NoahArkRedisMapTypeSerializer extends NoahArkAbstractRedisTypeSerializer<Map<byte[], byte[]>> {
+public class RedisMapTypeSerializer extends AbstractRedisTypeSerializer<Map<byte[], byte[]>> {
 
-    public static final NoahArkRedisMapTypeSerializer REDIS_MAP_DESERIALIZER =
-            new NoahArkRedisMapTypeSerializer();
+    public static final RedisMapTypeSerializer REDIS_MAP_DESERIALIZER =
+            new RedisMapTypeSerializer();
 
-    private NoahArkRedisMapTypeSerializer() { }
+    private RedisMapTypeSerializer() { }
 
     @Override
     public Map<byte[], byte[]> serializeValue(RowData rowData, String[] fieldNames, RowData.FieldGetter[] rowFieldGetters, NoahArkDataSerializer[] rowFieldSerializers) throws IOException {

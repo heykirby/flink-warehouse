@@ -1,7 +1,7 @@
 package com.sdu.streaming.warehouse.connector.redis.source;
 
-import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRowDataRuntimeConverter;
-import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisRuntimeConverter;
+import com.sdu.streaming.warehouse.connector.redis.RedisRowDataRuntimeConverter;
+import com.sdu.streaming.warehouse.connector.redis.RedisRuntimeConverter;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.source.AsyncTableFunctionProvider;
 import org.apache.flink.table.connector.source.DynamicTableSource;
@@ -10,12 +10,12 @@ import org.apache.flink.table.connector.source.TableFunctionProvider;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 
-public class NoahArkRedisDynamicTableSource implements LookupTableSource {
+public class RedisDynamicTableSource implements LookupTableSource {
 
     private final TableSchema physicalSchema;
-    private final NoahArkRedisReadOptions readOptions;
+    private final RedisReadOptions readOptions;
 
-    public NoahArkRedisDynamicTableSource(TableSchema physicalSchema, NoahArkRedisReadOptions readOptions) {
+    public RedisDynamicTableSource(TableSchema physicalSchema, RedisReadOptions readOptions) {
         this.physicalSchema = physicalSchema;
         this.readOptions = readOptions;
     }
@@ -31,17 +31,17 @@ public class NoahArkRedisDynamicTableSource implements LookupTableSource {
             primaryKeyIndexes[i] = new int[] {i, innerKeyIndexes[0]};
         }
 
-        NoahArkRedisRuntimeConverter<RowData> converter = new NoahArkRedisRowDataRuntimeConverter(readOptions, primaryKeyIndexes);
+        RedisRuntimeConverter<RowData> converter = new RedisRowDataRuntimeConverter(readOptions, primaryKeyIndexes);
 
         if (readOptions.isAsync()) {
-            return AsyncTableFunctionProvider.of(new NoahArkRedisAsyncTableFunction(readOptions, converter));
+            return AsyncTableFunctionProvider.of(new RedisAsyncTableFunction(readOptions, converter));
         }
-        return TableFunctionProvider.of(new NoahArkRedisTableFunction(converter, readOptions));
+        return TableFunctionProvider.of(new RedisTableFunction(converter, readOptions));
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new NoahArkRedisDynamicTableSource(physicalSchema, readOptions);
+        return new RedisDynamicTableSource(physicalSchema, readOptions);
     }
 
     @Override

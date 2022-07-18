@@ -1,11 +1,11 @@
 package com.sdu.streaming.warehouse.connector.redis.source;
 
-import com.sdu.streaming.warehouse.connector.redis.entry.NoahArkRedisDataType;
-import com.sdu.streaming.warehouse.connector.redis.NoahArkRedisOptions;
+import com.sdu.streaming.warehouse.connector.redis.entry.RedisDataType;
+import com.sdu.streaming.warehouse.connector.redis.RedisOptions;
 import org.apache.flink.table.types.logical.RowType;
 
 
-public class NoahArkRedisReadOptions extends NoahArkRedisOptions {
+public class RedisReadOptions extends RedisOptions {
 
     private final String clusterAddress;
     private final boolean async;
@@ -16,7 +16,7 @@ public class NoahArkRedisReadOptions extends NoahArkRedisOptions {
     private final long cacheMaxSize;
     private final long cacheExpireMs;
 
-    public NoahArkRedisReadOptions(RowType rowType, String keyPrefix, NoahArkRedisDataType redisDataType, String clusterAddress, boolean async, int maxRetryTimes, boolean cacheable, long cacheMaxSize, long cacheExpireMs) {
+    public RedisReadOptions(RowType rowType, String keyPrefix, RedisDataType redisDataType, String clusterAddress, boolean async, int maxRetryTimes, boolean cacheable, long cacheMaxSize, long cacheExpireMs) {
         super(rowType, keyPrefix, redisDataType);
         this.clusterAddress = clusterAddress;
         this.async = async;

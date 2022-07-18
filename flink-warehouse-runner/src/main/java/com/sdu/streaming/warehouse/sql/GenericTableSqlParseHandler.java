@@ -10,7 +10,7 @@ import java.util.Set;
 
 import static com.sdu.streaming.warehouse.entry.StorageType.GENERIC;
 
-public class GenericTableSqlParseHandler implements SqlParseHandler {
+public class GenericTableSqlParseHandler extends AbstractSqlParseHandler {
 
     public static final GenericTableSqlParseHandler INSTANCE = new GenericTableSqlParseHandler();
     private static final String PROPERTY_GENERIC_DATABASE = "generic.database";

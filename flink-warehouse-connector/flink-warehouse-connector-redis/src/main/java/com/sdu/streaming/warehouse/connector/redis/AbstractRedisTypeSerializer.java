@@ -8,7 +8,7 @@ import org.apache.flink.util.Preconditions;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public abstract class NoahArkAbstractRedisTypeSerializer<T> implements NoahArkRedisTypeSerializer<T> {
+public abstract class AbstractRedisTypeSerializer<T> implements RedisTypeSerializer<T> {
 
     @Override
     public byte[] serializeKey(RowData rowData, String prefix, RowData.FieldGetter[] keyFieldGetters, NoahArkDataSerializer[] rowKeySerializers) throws IOException {
