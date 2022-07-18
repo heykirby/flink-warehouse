@@ -11,11 +11,14 @@ import org.apache.calcite.sql.*;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.validate.SqlConformance;
+import org.apache.flink.shaded.guava30.com.google.common.collect.Maps;
+import org.apache.flink.shaded.guava30.com.google.common.collect.Sets;
 import org.apache.flink.sql.parser.ddl.SqlCreateTable;
 import org.apache.flink.sql.parser.ddl.SqlTableOption;
 import org.apache.flink.sql.parser.dml.RichSqlInsert;
 import org.apache.flink.sql.parser.validate.FlinkSqlConformance;
 import org.apache.flink.table.planner.delegation.FlinkSqlParserFactories;
+import org.apache.flink.util.Preconditions;
 
 import java.util.*;
 
@@ -28,14 +31,19 @@ public class SqlParseUtils {
 
     private static final SqlConformance DEFAULT_SQL_CONFORMANCE = FlinkSqlConformance.DEFAULT;
 
+    private static final Set<String> SUPPORTED_FUNCTIONS;
+
     private static final Map<StorageType, SqlParseHandler> HANDLERS;
 
     static {
-        HANDLERS = new HashMap<>();
+        SUPPORTED_FUNCTIONS = Sets.newHashSet("TUMBLE", "HOP", "");
+
+        HANDLERS = Maps.newHashMap();
         HANDLERS.put(KAFKA, KafkaTableSqlParseHandler.INSTANCE);
-        HANDLERS.put(MYSQL, MySQLTableSqlParseHandler.INSTANCE);
-        HANDLERS.put(HUDI, HudiTableSqlParseHandler.INSTANCE);
-        HANDLERS.put(GENERIC, GenericTableSqlParseHandler.INSTANCE);
+        HANDLERS.put(REDIS, RedisTableSqlParseHandler.INSTANCE);
+        // for test
+        HANDLERS.put(DATAGEN, DataGenTableSqlParseHandler.INSTANCE);
+        HANDLERS.put(CONSOLE, ConsoleTableSqlParseHandler.INSTANCE);
     }
 
     private SqlParseUtils() {
@@ -145,6 +153,20 @@ public class SqlParseUtils {
             case SNAPSHOT: // Temporal Table 维表血缘支持
                 SqlSnapshot snapshot = (SqlSnapshot) sqlNode;
                 extractTables(snapshot.getTableRef(), tables, result);
+                break;
+
+            case EXPLICIT_TABLE:
+            case COLLECTION_TABLE: // window tvf
+                SqlBasicCall tableNode = (SqlBasicCall) sqlNode;
+                Preconditions.checkArgument(tableNode.operands.length == 1);
+                extractTables(tableNode.operands[0], tables, result);
+                break;
+
+            case OTHER_FUNCTION:
+                SqlBasicCall functionNode = (SqlBasicCall) sqlNode;
+                if (SUPPORTED_FUNCTIONS.contains(functionNode.getOperator().getName())) {
+                    extractTables(functionNode.operands[0], tables, result);
+                }
                 break;
 
             default:

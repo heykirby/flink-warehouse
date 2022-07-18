@@ -6,13 +6,9 @@ import java.util.Map;
 public enum StorageType implements Serializable {
 
     KAFKA(0, "kafka"),
-    ELASTICSEARCH(1, "elasticsearch"),
-    CLICKHOUSE(2, "clickhouse"),
-    DRUID(3, "druid"),
-    MYSQL(4, "mysql"),
-    REDIS(5, "redis"),
-    HUDI(6, "hudi"),
-    GENERIC(7, "generic");
+    DATAGEN(1, "datagen"),
+    CONSOLE(2, "console"),
+    REDIS(3, "redis");
 
 
     private final int code;
@@ -39,16 +35,14 @@ public enum StorageType implements Serializable {
             throw new RuntimeException("cant find 'connector' property");
         }
         switch (connector) {
-            case "ks_kafka":
-            case "ks_upsert-kafka":
+            case "zh_kafka":
                 return KAFKA;
-            case "ks_kdb":
-                return MYSQL;
-            case "hudi":
-                return HUDI;
-            case "generic-table":
-                // 维表
-                return GENERIC;
+            case "datagen":
+                return DATAGEN;
+            case "print":
+                return CONSOLE;
+            case "redis":
+                return REDIS;
             default:
                 throw new UnsupportedOperationException("unsupported connector: " + connector);
         }

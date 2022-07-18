@@ -5,7 +5,7 @@ import java.io.Serializable;
 public enum TaskType implements Serializable {
 
     COMPUTE("compute", "process buried point data"),
-    SYNC("sync", "sync data to clickhouse");
+    SYNC("sync", "sync data to final storage engine.");
 
     private final String type;
     private final String description;
