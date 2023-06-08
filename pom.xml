@@ -14,11 +14,12 @@
         <module>flink-warehouse-format</module>
         <module>flink-warehouse-runner</module>
         <module>flink-warehouse-common</module>
+        <module>flink-warehouse-api</module>
     </modules>
 
     <properties>
         <scala.version>2.12</scala.version>
-        <flink.version>1.15.0</flink.version>
+        <flink.version>1.17.0</flink.version>
         <lombok.version>1.18.22</lombok.version>
         <jackson.version>2.13.1</jackson.version>
     </properties>

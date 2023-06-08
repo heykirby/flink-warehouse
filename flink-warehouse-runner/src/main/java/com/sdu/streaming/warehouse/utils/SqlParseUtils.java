@@ -1,11 +1,12 @@
 package com.sdu.streaming.warehouse.utils;
 
-import com.sdu.streaming.warehouse.dto.WarehouseJobTask;
+import com.sdu.streaming.warehouse.dto.WarehouseJob;
 import com.sdu.streaming.warehouse.entry.Lineage;
 import com.sdu.streaming.warehouse.entry.StorageType;
 import com.sdu.streaming.warehouse.entry.TableMetadata;
 import com.sdu.streaming.warehouse.entry.TaskLineage;
 import com.sdu.streaming.warehouse.sql.*;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.sql.*;
 import org.apache.calcite.sql.parser.SqlParseException;
@@ -27,6 +28,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.join;
 
+@Deprecated
 public class SqlParseUtils {
 
     private static final SqlConformance DEFAULT_SQL_CONFORMANCE = FlinkSqlConformance.DEFAULT;
@@ -51,7 +53,7 @@ public class SqlParseUtils {
     }
 
 
-    public static TaskLineage parseSql(WarehouseJobTask task) throws SqlParseException {
+    public static TaskLineage parseSql(WarehouseJob task) throws SqlParseException {
         // STEP1: 解析SQL
         SqlParser parser = SqlParser.create(combineSql(task), getSqlParserConfig());
         SqlNodeList sqlNodes = parser.parseStmtList();
@@ -116,7 +118,7 @@ public class SqlParseUtils {
             // TODO: support 'EXCEPT', 'INTERSECT'
             case UNION:
                 SqlBasicCall union = (SqlBasicCall) sqlNode;
-                for (SqlNode operand : union.operands) {
+                for (SqlNode operand : union.getOperandList()) {
                     extractTables(operand, tables, result);
                 }
                 break;
@@ -134,7 +136,7 @@ public class SqlParseUtils {
 
             case AS:
                 SqlBasicCall as = (SqlBasicCall) sqlNode;
-                extractTables(as.getOperands()[0], tables, result);
+                extractTables(as.getOperandList().get(0), tables, result);
                 break;
 
             case IDENTIFIER:
@@ -158,14 +160,14 @@ public class SqlParseUtils {
             case EXPLICIT_TABLE:
             case COLLECTION_TABLE: // window tvf
                 SqlBasicCall tableNode = (SqlBasicCall) sqlNode;
-                Preconditions.checkArgument(tableNode.operands.length == 1);
-                extractTables(tableNode.operands[0], tables, result);
+                Preconditions.checkArgument(tableNode.getOperandList().size() == 1);
+                extractTables(tableNode.getOperandList().get(0), tables, result);
                 break;
 
             case OTHER_FUNCTION:
                 SqlBasicCall functionNode = (SqlBasicCall) sqlNode;
                 if (SUPPORTED_FUNCTIONS.contains(functionNode.getOperator().getName())) {
-                    extractTables(functionNode.operands[0], tables, result);
+                    extractTables(functionNode.getOperandList().get(0), tables, result);
                 }
                 break;
 
@@ -195,7 +197,7 @@ public class SqlParseUtils {
                 .withIdentifierMaxLength(256);
     }
 
-    private static String combineSql(WarehouseJobTask task) {
+    private static String combineSql(WarehouseJob task) {
         StringBuilder sb = new StringBuilder();
         sb.append(join(task.getMaterials(), ";\n"));
         sb.append(";\n");

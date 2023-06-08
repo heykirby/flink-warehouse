@@ -4,7 +4,7 @@ import com.sdu.streaming.warehouse.WarehouseJobBootstrap;
 import com.sdu.streaming.warehouse.dto.TableColumnMetadata;
 import com.sdu.streaming.warehouse.dto.TableMetadata;
 import com.sdu.streaming.warehouse.dto.TableWatermarkMetadata;
-import com.sdu.streaming.warehouse.dto.WarehouseJobTask;
+import com.sdu.streaming.warehouse.dto.WarehouseJob;
 import org.apache.flink.shaded.guava30.com.google.common.collect.Lists;
 import org.apache.flink.shaded.guava30.com.google.common.collect.Maps;
 import org.junit.Before;
@@ -17,7 +17,7 @@ import static com.sdu.streaming.warehouse.utils.JsonUtils.toJson;
 
 public class StreamingSqlBaseTest {
 
-    protected WarehouseJobTask task;
+    protected WarehouseJob task;
     protected TableMetadata sourceTableMetadata;
 
     @Before
@@ -44,7 +44,7 @@ public class StreamingSqlBaseTest {
                 .properties(sourceTableProperties)
                 .build();
 
-        task = new WarehouseJobTask();
+        task = new WarehouseJob();
         task.setName("streaming-warehouse-sql-task");
         task.setStreaming(true);
         task.setReportLineage(true);

@@ -1,20 +1,22 @@
 package com.sdu.streaming.warehouse;
 
-import com.sdu.streaming.warehouse.dto.WarehouseJobTask;
-import com.sdu.streaming.warehouse.entry.TaskLineage;
+import com.sdu.streaming.warehouse.dto.WarehouseJob;
 import com.sdu.streaming.warehouse.utils.Base64Utils;
 import com.sdu.streaming.warehouse.utils.JsonUtils;
-import com.sdu.streaming.warehouse.utils.SqlParseUtils;
+import com.sdu.streaming.warehouse.utils.ModifyOperationAnalyzer;
+import com.sdu.warehouse.api.lineage.Lineage;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.TableEnvironment;
-import org.apache.flink.table.api.internal.TableEnvironmentImpl;
+import org.apache.flink.table.api.internal.StatementSetImpl;
 import org.apache.flink.table.api.internal.TableEnvironmentInternal;
+import org.apache.flink.table.operations.ModifyOperation;
 import org.apache.flink.table.operations.Operation;
 import org.apache.flink.table.operations.command.SetOperation;
+import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,12 +33,12 @@ public class WarehouseJobBootstrap {
     private static final String TASK_CONFIG_KEY = "taskConfig";
     private static final String DEFAULT_JOB_NAME = "Warehouse-Job";
 
-    private static void checkStreamingJobParameters(WarehouseJobTask task) {
+    private static void checkWarehouseJob(WarehouseJob task) {
         if (task == null) {
             throw new IllegalArgumentException("undefine task");
         }
-        if (task.getConfigurations() == null) {
-            task.setConfigurations(Collections.emptyList());
+        if (task.getOptions() == null) {
+            task.setOptions(Collections.emptyList());
         }
         if (task.getMaterials() == null || task.getMaterials().isEmpty()) {
             throw new IllegalArgumentException("undefine job materials");
@@ -49,17 +51,17 @@ public class WarehouseJobBootstrap {
         }
     }
 
-    private static TableEnvironment initializeTableEnvironment(WarehouseJobTask task) {
-        return task.isStreaming() ? initializeStreamTableEnvironment(task)
-                                  : initializeBatchTableEnvironment(task);
+    private static TableEnvironment createTableEnvironment(WarehouseJob warehouseJob) {
+        return warehouseJob.isStreaming() ? createStreamTableEnvironment(warehouseJob)
+                                          : createBatchTableEnvironment(warehouseJob);
     }
 
-    private static TableEnvironment initializeStreamTableEnvironment(WarehouseJobTask task) {
+    private static TableEnvironment createStreamTableEnvironment(WarehouseJob warehouseJob) {
         return TableEnvironment.create(
                 EnvironmentSettings.newInstance().inStreamingMode().build());
     }
 
-    private static TableEnvironment initializeBatchTableEnvironment(WarehouseJobTask task) {
+    private static TableEnvironment createBatchTableEnvironment(WarehouseJob warehouseJob) {
         TableEnvironment tableEnv = TableEnvironment.create(
                 EnvironmentSettings.newInstance().inBatchMode().build());
         // TODO: load hive catalog
@@ -67,9 +69,9 @@ public class WarehouseJobBootstrap {
         return tableEnv;
     }
 
-    private static void initializeTaskConfiguration(final TableEnvironment tableEnv, WarehouseJobTask task) {
-        task.getConfigurations().forEach(sql -> {
-            if (tableEnv instanceof TableEnvironmentImpl) {
+    private static void appendJobConfiguration(final TableEnvironment tableEnv, WarehouseJob warehouseJob) {
+        warehouseJob.getOptions().forEach(sql -> {
+            if (tableEnv instanceof TableEnvironmentInternal) {
                 TableEnvironmentInternal tableEnvInternal = (TableEnvironmentInternal) tableEnv;
                 List<Operation> operations = tableEnvInternal.getParser().parse(sql);
                 if (operations == null || operations.isEmpty()) {
@@ -87,65 +89,53 @@ public class WarehouseJobBootstrap {
         });
     }
 
-    private static void initializeTaskMaterials(TableEnvironment tableEnv, WarehouseJobTask task) {
+    private static void executeJobMaterials(TableEnvironment tableEnv, WarehouseJob warehouseJob) {
         registerBuildInUserFunction(tableEnv);
-        task.getMaterials().forEach(tableEnv::executeSql);
+        warehouseJob.getMaterials().forEach(tableEnv::executeSql);
     }
 
-    private static StatementSet initializeTaskCalculateLogic(TableEnvironment tableEnv, WarehouseJobTask task) {
-        StatementSet statements = tableEnv.createStatementSet();
-        task.getCalculates().forEach(statements::addInsertSql);
-        return statements;
+    private static StatementSet executeJobCalculateLogic(TableEnvironment tableEnv, WarehouseJob warehouseJob) throws Exception {
+        StatementSet statement = tableEnv.createStatementSet();
+        warehouseJob.getCalculates().forEach(statement::addInsertSql);
+        buildJobLineage(statement, warehouseJob);
+        return statement;
     }
 
-    private static boolean buildTaskLineageAndReport(WarehouseJobTask task) throws Exception {
-        if (!task.isReportLineage()) {
-            return false;
-        }
-        // STEP1: 解析任务血缘
-        TaskLineage taskLineage = SqlParseUtils.parseSql(task);
-        // STEP2: 血缘上报
-        LOG.info("Task({}) lineage: {}", task.getName(), toJson(taskLineage));
-        return true;
+    private static void buildJobLineage(StatementSet statement, WarehouseJob warehouseJob) throws Exception {
+        Preconditions.checkArgument(statement instanceof StatementSetImpl);
+        StatementSetImpl<?> statementSet = (StatementSetImpl<?>) statement;
+        List<ModifyOperation> operations = statementSet.getOperations();
+        // STEP1：解析血缘
+        List<Lineage> lineages = ModifyOperationAnalyzer.analyze(warehouseJob.getName(), operations);
+        // STEP2：上报血缘
+        LOG.info("Task({}) lineage: {}", warehouseJob.getName(), toJson(lineages));
     }
 
-    private static boolean deleteTaskLineage(WarehouseJobTask task) {
-        // TODO: delete task lineage
-        return false;
-    }
-
-    private static void initializeJobNameAndExecute(TableEnvironment tableEnv, StatementSet statements, WarehouseJobTask task) {
+    private static void executeWarehouseJob(TableEnvironment tableEnv, StatementSet statements, WarehouseJob task) {
         tableEnv.getConfig().getConfiguration().set(PipelineOptions.NAME, task.getName());
         statements.execute();
     }
 
     public static void run(String[] args) {
-        boolean reportSuccess = false;
-        WarehouseJobTask task = null;
+        WarehouseJob warehouseJob = null;
         try {
             ParameterTool parameterTool = ParameterTool.fromArgs(args);
             String taskJson = Base64Utils.decode(parameterTool.get(TASK_CONFIG_KEY));
-            task = JsonUtils.fromJson(taskJson, WarehouseJobTask.class);
+            warehouseJob = JsonUtils.fromJson(taskJson, WarehouseJob.class);
             // STEP1: 校验参数
-            checkStreamingJobParameters(task);
+            checkWarehouseJob(warehouseJob);
             // STEP2: 环境配置
-            TableEnvironment tableEnv = initializeTableEnvironment(task);
+            TableEnvironment tableEnv = createTableEnvironment(warehouseJob);
             // STEP3: 参数配置
-            initializeTaskConfiguration(tableEnv, task);
+            appendJobConfiguration(tableEnv, warehouseJob);
             // STEP4: 注册数据源、自定义函数
-            initializeTaskMaterials(tableEnv, task);
+            executeJobMaterials(tableEnv, warehouseJob);
             // STEP5: 注册计算逻辑
-            StatementSet statements = initializeTaskCalculateLogic(tableEnv, task);
-            // STEP6: 解析血缘及上报
-            reportSuccess = buildTaskLineageAndReport(task);
-            // STEP7: 提交任务
-            initializeJobNameAndExecute(tableEnv, statements, task);
+            StatementSet statements = executeJobCalculateLogic(tableEnv, warehouseJob);
+            // STEP6: 提交任务
+            executeWarehouseJob(tableEnv, statements, warehouseJob);
         } catch (Exception e) {
-            if (reportSuccess) {
-                if (!deleteTaskLineage(task)) {
-                    System.err.println("failed delete task lineage.");
-                }
-            }
+
             throw new RuntimeException("failed execute job", e);
         }
     }
