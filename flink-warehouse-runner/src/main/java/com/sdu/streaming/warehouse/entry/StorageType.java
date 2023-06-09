@@ -3,6 +3,7 @@ package com.sdu.streaming.warehouse.entry;
 import java.io.Serializable;
 import java.util.Map;
 
+@Deprecated
 public enum StorageType implements Serializable {
 
     KAFKA(0, "kafka"),

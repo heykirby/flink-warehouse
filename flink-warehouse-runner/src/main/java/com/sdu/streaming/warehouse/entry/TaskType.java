@@ -2,6 +2,7 @@ package com.sdu.streaming.warehouse.entry;
 
 import java.io.Serializable;
 
+@Deprecated
 public enum TaskType implements Serializable {
 
     COMPUTE("compute", "process buried point data"),

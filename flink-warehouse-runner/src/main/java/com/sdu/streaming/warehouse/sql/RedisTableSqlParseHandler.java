@@ -7,6 +7,7 @@ import java.util.Map;
 
 import static com.sdu.streaming.warehouse.entry.StorageType.REDIS;
 
+@Deprecated
 public class RedisTableSqlParseHandler extends AbstractSqlParseHandler {
 
     public static final RedisTableSqlParseHandler INSTANCE = new RedisTableSqlParseHandler();

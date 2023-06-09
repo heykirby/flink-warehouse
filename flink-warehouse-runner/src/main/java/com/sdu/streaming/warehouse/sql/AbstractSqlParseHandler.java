@@ -9,6 +9,7 @@ import java.util.Set;
 import static com.sdu.streaming.warehouse.entry.TaskType.SYNC;
 import static java.util.stream.Collectors.toList;
 
+@Deprecated
 public abstract class AbstractSqlParseHandler implements SqlParseHandler {
 
     @Override

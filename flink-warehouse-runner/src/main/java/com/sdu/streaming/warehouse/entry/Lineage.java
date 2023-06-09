@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
+@Deprecated
 public class Lineage implements Serializable {
 
     @JsonProperty("task_type")

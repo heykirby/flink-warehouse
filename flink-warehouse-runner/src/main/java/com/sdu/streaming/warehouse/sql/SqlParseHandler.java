@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Deprecated
 public interface SqlParseHandler {
 
     TableMetadata parseTableMetadata(String name, Map<String, String> properties);

@@ -4,7 +4,7 @@ import com.sdu.streaming.warehouse.dto.WarehouseJob;
 import com.sdu.streaming.warehouse.utils.Base64Utils;
 import com.sdu.streaming.warehouse.utils.JsonUtils;
 import com.sdu.streaming.warehouse.utils.ModifyOperationAnalyzer;
-import com.sdu.warehouse.api.lineage.Lineage;
+import com.sdu.streaming.warehouse.entry.WarehouseLineage;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.PipelineOptions;
@@ -106,7 +106,7 @@ public class WarehouseJobBootstrap {
         StatementSetImpl<?> statementSet = (StatementSetImpl<?>) statement;
         List<ModifyOperation> operations = statementSet.getOperations();
         // STEP1：解析血缘
-        List<Lineage> lineages = ModifyOperationAnalyzer.analyze(warehouseJob.getName(), operations);
+        List<WarehouseLineage> lineages = ModifyOperationAnalyzer.analyze(warehouseJob.getName(), operations);
         // STEP2：上报血缘
         LOG.info("Task({}) lineage: {}", warehouseJob.getName(), toJson(lineages));
     }

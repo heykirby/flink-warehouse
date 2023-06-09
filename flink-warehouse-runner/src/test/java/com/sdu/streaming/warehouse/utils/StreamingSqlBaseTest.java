@@ -47,7 +47,6 @@ public class StreamingSqlBaseTest {
         task = new WarehouseJob();
         task.setName("streaming-warehouse-sql-task");
         task.setStreaming(true);
-        task.setReportLineage(true);
     }
 
     protected void execute() throws Exception {

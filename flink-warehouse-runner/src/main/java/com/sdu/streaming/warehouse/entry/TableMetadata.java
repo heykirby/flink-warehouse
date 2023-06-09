@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import static java.lang.String.format;
 
+@Deprecated
 public class TableMetadata {
 
     // CREATE TABLE xxx

@@ -5,6 +5,7 @@ import com.sdu.streaming.warehouse.entry.TableMetadata;
 
 import java.util.Map;
 
+@Deprecated
 public class ConsoleTableSqlParseHandler extends AbstractSqlParseHandler {
 
     public static final ConsoleTableSqlParseHandler INSTANCE = new ConsoleTableSqlParseHandler();

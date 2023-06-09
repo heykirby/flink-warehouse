@@ -14,7 +14,6 @@
         <module>flink-warehouse-format</module>
         <module>flink-warehouse-runner</module>
         <module>flink-warehouse-common</module>
-        <module>flink-warehouse-api</module>
     </modules>
 
     <properties>

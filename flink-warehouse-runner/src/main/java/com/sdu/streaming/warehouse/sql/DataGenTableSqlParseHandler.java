@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Deprecated
 public class DataGenTableSqlParseHandler extends AbstractSqlParseHandler {
 
     public static final DataGenTableSqlParseHandler INSTANCE = new DataGenTableSqlParseHandler();

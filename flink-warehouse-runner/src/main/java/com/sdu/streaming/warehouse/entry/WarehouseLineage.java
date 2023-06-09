@@ -1,4 +1,4 @@
-package com.sdu.warehouse.api.lineage;
+package com.sdu.streaming.warehouse.entry;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class Lineage implements Serializable {
+public class WarehouseLineage implements Serializable {
 
     private final String jobName;
 
@@ -19,7 +19,7 @@ public class Lineage implements Serializable {
     // key: targetTableColumn, value: sourceTableColumn
     private Map<String, Set<String>> columnLineages;
 
-    public Lineage(String jobName) {
+    public WarehouseLineage(String jobName) {
         this.jobName = jobName;
     }
 

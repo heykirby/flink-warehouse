@@ -11,6 +11,7 @@ import static com.sdu.streaming.warehouse.entry.TaskType.SYNC;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 
+@Deprecated
 public class KafkaTableSqlParseHandler extends AbstractSqlParseHandler {
 
     public static final KafkaTableSqlParseHandler INSTANCE = new KafkaTableSqlParseHandler();
