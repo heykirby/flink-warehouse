@@ -1,6 +1,7 @@
 package com.sdu.streaming.warehouse.connector.kafka;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.streaming.connectors.kafka.config.BoundedMode;
 import org.apache.flink.streaming.connectors.kafka.config.StartupMode;
 import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition;
 import org.apache.flink.streaming.connectors.kafka.table.KafkaDynamicSource;
@@ -29,6 +30,9 @@ public class NoahArkKafkaDynamicSource extends KafkaDynamicSource {
                                      StartupMode startupMode,
                                      Map<KafkaTopicPartition, Long> specificStartupOffsets,
                                      long startupTimestampMillis,
+                                     BoundedMode boundedMode,
+                                     Map<KafkaTopicPartition, Long> specificBoundedOffsets,
+                                     long boundedTimestampMillis,
                                      boolean upsertMode,
                                      String tableIdentifier,
                                      int parallelism) {
@@ -44,6 +48,9 @@ public class NoahArkKafkaDynamicSource extends KafkaDynamicSource {
                 startupMode,
                 specificStartupOffsets,
                 startupTimestampMillis,
+                boundedMode,
+                specificBoundedOffsets,
+                boundedTimestampMillis,
                 upsertMode,
                 tableIdentifier);
         this.parallelism = parallelism;
