@@ -42,7 +42,7 @@ public class RedisSinkFunction<T> extends RichSinkFunction<T> implements Checkpo
     // async write
     private transient AtomicInteger batchCount = new AtomicInteger(0);
     private transient ScheduledExecutorService executor;
-    private transient ScheduledFuture scheduledFuture;
+    private transient ScheduledFuture<?> scheduledFuture;
 
     private transient volatile boolean closed = false;
 
