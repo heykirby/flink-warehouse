@@ -21,8 +21,8 @@ public class StreamSqlLineageTest extends StreamingSqlBaseTest{
         Map<String, String> sinkTableProperties = Maps.newHashMap();
         sinkTableProperties.put("connector", "print");
         List<TableColumnMetadata> sinkTableColumns = Lists.newArrayList(
-                TableColumnMetadata.builder().name("id").type("BIGINT").build(),
-                TableColumnMetadata.builder().name("name").type("STRING").build()
+                TableColumnMetadata.builder().name("ids").type("BIGINT").build(),
+                TableColumnMetadata.builder().name("names").type("STRING").build()
         );
         TableMetadata sinkTableMetadata = TableMetadata.builder()
                 .name("t2")

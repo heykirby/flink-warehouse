@@ -12,6 +12,7 @@ import org.apache.flink.table.operations.CreateTableASOperation;
 import org.apache.flink.table.operations.ModifyOperation;
 import org.apache.flink.table.operations.SinkModifyOperation;
 import org.apache.flink.table.planner.operations.PlannerQueryOperation;
+import org.apache.flink.table.planner.plan.schema.TableSourceTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,19 +67,22 @@ public enum ModifyOperationAnalyzer {
                     throw new IllegalStateException("cant find source column for target column '" + targetColumn + "'");
                 }
                 for (RelColumnOrigin origin : sourceColumns) {
-                    // TODO: 2023/6/8
-                    RelOptTable sourceTable = origin.getOriginTable();
-
+                    RelOptTable table = origin.getOriginTable();
+                    TableSourceTable tst = table.unwrap(TableSourceTable.class);
+                    ContextResolvedTable crt = tst.contextResolvedTable();
+                    String sourceTableName = crt.getIdentifier().asSummaryString();
+                    Map<String, String> sourceTableOptions = crt.getTable().getOptions();
+                    sourceTableFullNames.put(sourceTableName, sourceTableOptions);
                     // column lineage
                     int ordinal = origin.getOriginColumnOrdinal();
-                    String sourceColumnName = sourceTable.getRowType().getFieldNames().get(ordinal);
+                    String sourceColumnName = table.getRowType().getFieldNames().get(ordinal);
                     lineage.addTableColumnLineage(sourceColumnName, targetColumn);
                 }
             }
             // table lineage
             lineage.buildTableLineage(
                     sourceTableFullNames,
-                    String.join(".", objectIdentifier.getDatabaseName(), objectIdentifier.getObjectName()),
+                    objectIdentifier.asSummaryString(),
                     resolvedTable.getTable().getOptions());
 
             return lineage;
