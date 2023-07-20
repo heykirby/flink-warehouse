@@ -1,7 +1,7 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
-import com.sdu.streaming.warehouse.deserializer.NoahArkDataDeserializer;
-import com.sdu.streaming.warehouse.deserializer.NoahArkDataSerializer;
+import com.sdu.streaming.warehouse.deserializer.GenericDataDeserializer;
+import com.sdu.streaming.warehouse.deserializer.GenericDataSerializer;
 import com.sdu.streaming.warehouse.utils.ByteArrayDataInput;
 import com.sdu.streaming.warehouse.utils.ByteArrayDataOutput;
 import org.apache.flink.table.data.GenericRowData;
@@ -18,7 +18,7 @@ public class RedisStringTypeSerializer extends AbstractRedisTypeSerializer<byte[
     private RedisStringTypeSerializer() { }
 
     @Override
-    public byte[] serializeValue(RowData rowData, String[] fieldNames, RowData.FieldGetter[] rowFieldGetters, NoahArkDataSerializer[] rowFieldSerializers) throws IOException {
+    public byte[] serializeValue(RowData rowData, String[] fieldNames, RowData.FieldGetter[] rowFieldGetters, GenericDataSerializer[] rowFieldSerializers) throws IOException {
         Preconditions.checkArgument(rowFieldGetters.length == rowFieldSerializers.length);
 
         ByteArrayDataOutput out = new ByteArrayDataOutput();
@@ -30,7 +30,7 @@ public class RedisStringTypeSerializer extends AbstractRedisTypeSerializer<byte[
     }
 
     @Override
-    public RowData deserializeValue(byte[] bytes, String[] fieldNames, NoahArkDataDeserializer[] rowFieldDeserializers) throws IOException {
+    public RowData deserializeValue(byte[] bytes, String[] fieldNames, GenericDataDeserializer[] rowFieldDeserializers) throws IOException {
         if (bytes == null || bytes.length == 0) {
             return null;
         }

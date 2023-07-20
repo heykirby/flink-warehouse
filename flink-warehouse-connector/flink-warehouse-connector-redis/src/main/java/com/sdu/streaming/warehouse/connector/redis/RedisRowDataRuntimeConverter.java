@@ -1,8 +1,8 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
 import com.sdu.streaming.warehouse.connector.redis.entry.*;
-import com.sdu.streaming.warehouse.deserializer.NoahArkDataDeserializer;
-import com.sdu.streaming.warehouse.deserializer.NoahArkDataSerializer;
+import com.sdu.streaming.warehouse.deserializer.GenericDataDeserializer;
+import com.sdu.streaming.warehouse.deserializer.GenericDataSerializer;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
@@ -16,8 +16,8 @@ import java.util.function.BiConsumer;
 import static com.sdu.streaming.warehouse.connector.redis.RedisListTypeSerializer.REDIS_LIST_DESERIALIZER;
 import static com.sdu.streaming.warehouse.connector.redis.RedisMapTypeSerializer.REDIS_MAP_DESERIALIZER;
 import static com.sdu.streaming.warehouse.connector.redis.RedisStringTypeSerializer.REDIS_STRING_DESERIALIZER;
-import static com.sdu.streaming.warehouse.deserializer.NoahArkDataDeserializer.createDataDeserializer;
-import static com.sdu.streaming.warehouse.deserializer.NoahArkDataSerializer.createDataSerializer;
+import static com.sdu.streaming.warehouse.deserializer.GenericDataDeserializer.createDataDeserializer;
+import static com.sdu.streaming.warehouse.deserializer.GenericDataSerializer.createDataSerializer;
 
 
 public class RedisRowDataRuntimeConverter implements RedisRuntimeConverter<RowData> {
@@ -32,14 +32,14 @@ public class RedisRowDataRuntimeConverter implements RedisRuntimeConverter<RowDa
     private final RedisOptions redisOptions;
 
     // primary key
-    private transient NoahArkDataSerializer[] rowKeySerializers;
+    private transient GenericDataSerializer[] rowKeySerializers;
     private transient RowData.FieldGetter[] rowKeyFieldGetters;
 
     // row field
-    private transient NoahArkDataSerializer[] rowFieldSerializers;
+    private transient GenericDataSerializer[] rowFieldSerializers;
     private transient RowData.FieldGetter[] rowFieldGetters;
 
-    private transient NoahArkDataDeserializer[] rowFieldDeserializers;
+    private transient GenericDataDeserializer[] rowFieldDeserializers;
     private transient String[] fieldNames;
 
     public RedisRowDataRuntimeConverter(RedisOptions redisOptions, int[][] primaryKeyIndexes) {
@@ -52,7 +52,7 @@ public class RedisRowDataRuntimeConverter implements RedisRuntimeConverter<RowDa
         RowType rowType = redisOptions.getRowType();
 
         // primary key
-        rowKeySerializers = new NoahArkDataSerializer[primaryKeyIndexes.length];
+        rowKeySerializers = new GenericDataSerializer[primaryKeyIndexes.length];
         rowKeyFieldGetters = new RowData.FieldGetter[primaryKeyIndexes.length];
         for (int i = 0; i < primaryKeyIndexes.length; ++i) {
             LogicalType rowKeyType = rowType.getTypeAt(primaryKeyIndexes[i][1]);
@@ -61,7 +61,7 @@ public class RedisRowDataRuntimeConverter implements RedisRuntimeConverter<RowDa
         }
 
         // write
-        rowFieldSerializers = new NoahArkDataSerializer[rowType.getFieldCount()];
+        rowFieldSerializers = new GenericDataSerializer[rowType.getFieldCount()];
         rowFieldGetters = new RowData.FieldGetter[rowType.getFieldCount()];
         for (int i = 0; i < rowType.getFieldCount(); ++i) {
             rowFieldSerializers[i] = createDataSerializer(rowType.getTypeAt(i));
@@ -69,7 +69,7 @@ public class RedisRowDataRuntimeConverter implements RedisRuntimeConverter<RowDa
         }
 
         // read
-        rowFieldDeserializers = new NoahArkDataDeserializer[rowType.getFieldCount()];
+        rowFieldDeserializers = new GenericDataDeserializer[rowType.getFieldCount()];
         for (int i = 0; i < rowType.getFieldCount(); ++i) {
             rowFieldDeserializers[i] = createDataDeserializer(rowType.getTypeAt(i));
         }

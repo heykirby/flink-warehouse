@@ -21,12 +21,12 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.Preconditions;
 
-import static com.sdu.streaming.warehouse.deserializer.NoahArkDataDeserializer.createDataDeserializer;
-import static com.sdu.streaming.warehouse.deserializer.NoahArkDataSerializer.createDataSerializer;
+import static com.sdu.streaming.warehouse.deserializer.GenericDataDeserializer.createDataDeserializer;
+import static com.sdu.streaming.warehouse.deserializer.GenericDataSerializer.createDataSerializer;
 
-public class NoahArkDataDeserializerUtils {
+public class GenericDataDeserializerUtils {
 
-    private NoahArkDataDeserializerUtils() { }
+    private GenericDataDeserializerUtils() { }
 
     public static void serializeStringData(StringData data, DataOutput out) throws IOException {
         byte[] values = data.toBytes();
@@ -137,7 +137,7 @@ public class NoahArkDataDeserializerUtils {
 
     public static void serializeArrayData(ArrayData data, LogicalType elementType, DataOutput out) throws IOException {
         out.writeInt(data.size());
-        NoahArkDataSerializer serializer = createDataSerializer(elementType);
+        GenericDataSerializer serializer = createDataSerializer(elementType);
         ArrayData.ElementGetter elementGetter = ArrayData.createElementGetter(elementType);
         for (int arrayIndex = 0; arrayIndex < data.size(); ++arrayIndex) {
             Object element = elementGetter.getElementOrNull(data, arrayIndex);
@@ -147,7 +147,7 @@ public class NoahArkDataDeserializerUtils {
 
     public static ArrayData deserializeArrayData(DataInput input, LogicalType elementType) throws IOException {
         int arraySize = input.readInt();
-        NoahArkDataDeserializer deserializer = createDataDeserializer(elementType);
+        GenericDataDeserializer deserializer = createDataDeserializer(elementType);
         Object[] arrayData = new Object[arraySize];
         for (int arrayIndex = 0; arrayIndex < arraySize; ++arrayIndex) {
             arrayData[arrayIndex] = deserializer.deserializer(input);
@@ -184,7 +184,7 @@ public class NoahArkDataDeserializerUtils {
         int index = 0;
         for (RowType.RowField field : rowType.getFields()) {
             RowData.FieldGetter fieldGetter = RowData.createFieldGetter(field.getType(), index);
-            NoahArkDataSerializer deserializer = createDataSerializer(field.getType());
+            GenericDataSerializer deserializer = createDataSerializer(field.getType());
             deserializer.serializer(fieldGetter.getFieldOrNull(data), out);
             index += 1;
         }
@@ -196,7 +196,7 @@ public class NoahArkDataDeserializerUtils {
         GenericRowData rowData = new GenericRowData(kind, fieldCount);
         int index = 0;
         for (RowType.RowField field : rowType.getFields()) {
-            NoahArkDataDeserializer deserializer = createDataDeserializer(field.getType());
+            GenericDataDeserializer deserializer = createDataDeserializer(field.getType());
             rowData.setField(index, deserializer.deserializer(input));
             index += 1;
         }

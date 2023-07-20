@@ -9,54 +9,54 @@ import java.io.DataInput;
 import java.io.IOException;
 import java.io.Serializable;
 
-import static com.sdu.streaming.warehouse.deserializer.NoahArkDataDeserializerUtils.*;
+import static com.sdu.streaming.warehouse.deserializer.GenericDataDeserializerUtils.*;
 
-public interface NoahArkDataDeserializer extends Serializable {
+public interface GenericDataDeserializer extends Serializable {
 
     Object deserializer(DataInput input) throws IOException;
 
-    static NoahArkDataDeserializer createDataDeserializer(LogicalType fieldType) {
-        NoahArkDataDeserializer deserializer;
+    static GenericDataDeserializer createDataDeserializer(LogicalType fieldType) {
+        GenericDataDeserializer deserializer;
         switch (fieldType.getTypeRoot()) {
             case CHAR:
             case VARCHAR:
-                deserializer = NoahArkDataDeserializerUtils::deserializeStringData;
+                deserializer = GenericDataDeserializerUtils::deserializeStringData;
                 break;
             case BOOLEAN:
-                deserializer = NoahArkDataDeserializerUtils::deserializeBooleanData;
+                deserializer = GenericDataDeserializerUtils::deserializeBooleanData;
                 break;
             case BINARY:
             case VARBINARY:
-                deserializer = NoahArkDataDeserializerUtils::deserializeBinaryData;
+                deserializer = GenericDataDeserializerUtils::deserializeBinaryData;
                 break;
             case DECIMAL:
-                deserializer = NoahArkDataDeserializerUtils::deserializeDecimalData;
+                deserializer = GenericDataDeserializerUtils::deserializeDecimalData;
                 break;
             case TINYINT:
-                deserializer = NoahArkDataDeserializerUtils::deserializeByteData;
+                deserializer = GenericDataDeserializerUtils::deserializeByteData;
                 break;
             case SMALLINT:
-                deserializer = NoahArkDataDeserializerUtils::deserializeShortData;
+                deserializer = GenericDataDeserializerUtils::deserializeShortData;
                 break;
             case INTEGER:
             case DATE:
             case TIME_WITHOUT_TIME_ZONE:
             case INTERVAL_YEAR_MONTH:
-                deserializer = NoahArkDataDeserializerUtils::deserializeIntData;
+                deserializer = GenericDataDeserializerUtils::deserializeIntData;
                 break;
             case BIGINT:
             case INTERVAL_DAY_TIME:
-                deserializer = NoahArkDataDeserializerUtils::deserializeLongData;
+                deserializer = GenericDataDeserializerUtils::deserializeLongData;
                 break;
             case FLOAT:
-                deserializer = NoahArkDataDeserializerUtils::deserializeFloatData;
+                deserializer = GenericDataDeserializerUtils::deserializeFloatData;
                 break;
             case DOUBLE:
-                deserializer = NoahArkDataDeserializerUtils::deserializeDoubleData;
+                deserializer = GenericDataDeserializerUtils::deserializeDoubleData;
                 break;
             case TIMESTAMP_WITHOUT_TIME_ZONE:
             case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
-                deserializer = NoahArkDataDeserializerUtils::deserializeTimestampData;
+                deserializer = GenericDataDeserializerUtils::deserializeTimestampData;
                 break;
             case RAW:
             case DISTINCT_TYPE:

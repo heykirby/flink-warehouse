@@ -10,14 +10,14 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.io.Serializable;
 
-import static com.sdu.streaming.warehouse.deserializer.NoahArkDataDeserializerUtils.*;
+import static com.sdu.streaming.warehouse.deserializer.GenericDataDeserializerUtils.*;
 
-public interface NoahArkDataSerializer extends Serializable {
+public interface GenericDataSerializer extends Serializable {
 
     void serializer(Object data, DataOutput out) throws IOException;
 
-    static NoahArkDataSerializer createDataSerializer(LogicalType fieldType) {
-        NoahArkDataSerializer serializer;
+    static GenericDataSerializer createDataSerializer(LogicalType fieldType) {
+        GenericDataSerializer serializer;
         // ordered by type root definition
         switch (fieldType.getTypeRoot()) {
             case CHAR:
