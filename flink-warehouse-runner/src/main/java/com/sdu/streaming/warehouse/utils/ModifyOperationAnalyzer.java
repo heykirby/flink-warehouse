@@ -19,7 +19,7 @@ import java.util.*;
 
 public enum ModifyOperationAnalyzer {
 
-    CreateTableASOperationAnalyzer() {
+    CreateTableAsOperationAnalyzer() {
 
         @Override
         public boolean accept(ModifyOperation modifyOperation) {
