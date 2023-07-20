@@ -6,36 +6,24 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sdu.streaming.warehouse.utils.SqlCreateTableBuilder.buildCreateTableStatement;
 import static java.lang.String.format;
 
 public class RedisConnectorITCase extends RedisBaseTest {
 
-    private String productMessageSourceTable;
-    private String productMessageRedisTable;
-    private String productSaleTable;
-    private String productSaleSummaryTable;
 
     @Before
     public void setup() {
         super.setup();
-        // product message table
-        productMessageSourceTable = buildCreateTableStatement(productMessageSourceTableMetadata);
-        productMessageRedisTable = buildCreateTableStatement(productMessageRedisTableMetadata);
-        // product sale table
-        productSaleTable = buildCreateTableStatement(productSaleTableMetadata);
-        // product sale summary table
-        productSaleSummaryTable = buildCreateTableStatement(productSaleSummaryTableMetadata);
     }
 
     @Test
     public void testRedisTableAppendSink() throws Exception {
         StreamExecutionEnvironment execEnv = StreamExecutionEnvironment.getExecutionEnvironment();
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(execEnv, streamSettings);
-        tEnv.executeSql(productMessageSourceTable);
-        tEnv.executeSql(productMessageRedisTable);
-
-        TableResult tableResult = tEnv.executeSql(format("INSERT INTO %s SELECT * FROM %s", productMessageRedisTableName, productMessageSourceTableName));
+        tEnv.executeSql(productMsgTable);
+        tEnv.executeSql(productRedisTable);
+        String sql = format("INSERT INTO %s SELECT * FROM %s", productRedisTableName, productMsgTableName);
+        TableResult tableResult = tEnv.executeSql(sql);
         // wait finish
         tableResult.await();
     }
@@ -44,13 +32,13 @@ public class RedisConnectorITCase extends RedisBaseTest {
     public void testRedisTableRestrictSink() throws Exception {
         StreamExecutionEnvironment execEnv = StreamExecutionEnvironment.getExecutionEnvironment();
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(execEnv, streamSettings);
-        tEnv.executeSql(productSaleTable);
-        tEnv.executeSql(productSaleSummaryTable);
+        tEnv.executeSql(saleTable);
+        tEnv.executeSql(saleSummaryTable);
 
         String restrictSql = format(
                 "INSERT INTO %s SELECT id, sum(sales), window_start, window_end FROM TABLE(TUMBLE(TABLE %s, DESCRIPTOR(%s), INTERVAL '1' SECONDS)) GROUP BY id, window_start, window_end",
-                productSaleSummaryTableName,
-                productSaleTableName,
+                saleSummaryTableName,
+                saleTableName,
                 "sale_time"
         );
 
@@ -61,13 +49,13 @@ public class RedisConnectorITCase extends RedisBaseTest {
     public void testLookupJoinRedisTable() throws Exception {
         StreamExecutionEnvironment execEnv = StreamExecutionEnvironment.getExecutionEnvironment();
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(execEnv, streamSettings);
-        tEnv.executeSql(productSaleTable);
-        tEnv.executeSql(productMessageRedisTable);
+        tEnv.executeSql(saleTable);
+        tEnv.executeSql(productRedisTableName);
 
         String lookupJoinSql = format(
                 "SELECT oid, p.id, p.name, p.address, sales, sale_time FROM %s AS s LEFT JOIN %s FOR SYSTEM_TIME AS OF s.sale_time AS p ON s.id = p.id",
-                productSaleTableName,
-                productMessageRedisTableName
+                saleTableName,
+                productRedisTableName
         );
 
         TableResult tableResult = tEnv.executeSql(lookupJoinSql);

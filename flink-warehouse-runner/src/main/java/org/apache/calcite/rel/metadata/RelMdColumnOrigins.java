@@ -193,6 +193,26 @@ public class RelMdColumnOrigins
         return mq.getColumnOrigins(rel.getInput(), iOutputColumn);
     }
 
+    // support lookup join
+    public @Nullable Set<RelColumnOrigin> getColumnOrigins(Snapshot rel,
+                                                           RelMetadataQuery mq, int iOutputColumn) {
+        return mq.getColumnOrigins(rel.getInput(), iOutputColumn);
+    }
+
+    // support UDTF
+    public @Nullable Set<RelColumnOrigin> getColumnOrigins(Correlate rel,
+                                                           RelMetadataQuery mq, int iOutputColumn) {
+//        int nLeftColumns = rel.getLeft().getRowType().getFieldList().size();
+//        Set<RelColumnOrigin> set;
+//        if (nLeftColumns > iOutputColumn) {
+//            set = mq.getColumnOrigins(rel.getLeft(), iOutputColumn);
+//        } else {
+//            TableFunctionScan scan = (TableFunctionScan) rel.getRight();
+//
+//        }
+        return null;
+    }
+
     // Catch-all rule when none of the others apply.
     public @Nullable Set<RelColumnOrigin> getColumnOrigins(RelNode rel,
                                                            RelMetadataQuery mq, int iOutputColumn) {

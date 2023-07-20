@@ -1,108 +1,87 @@
 package com.sdu.streaming.warehouse.connector.redis;
 
-import com.sdu.streaming.warehouse.dto.TableColumnMetadata;
-import com.sdu.streaming.warehouse.dto.TableMetadata;
-import com.sdu.streaming.warehouse.dto.TableWatermarkMetadata;
-import org.apache.flink.shaded.guava30.com.google.common.collect.Lists;
-import org.apache.flink.shaded.guava30.com.google.common.collect.Maps;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.junit.Before;
-
-import java.util.List;
-import java.util.Map;
 
 public abstract class RedisBaseTest {
 
     protected EnvironmentSettings streamSettings;
 
-    // 产品信息表(维度表)
-    protected String productMessageRedisTableName;
-    protected TableMetadata productMessageRedisTableMetadata;
 
-    protected String productMessageSourceTableName;
-    protected TableMetadata productMessageSourceTableMetadata;
+    protected String productMsgTable;
+    protected String productMsgTableName;
+
+    // 产品信息表(维度表)
+    protected String productRedisTable;
+    protected String productRedisTableName;
 
     // 产品售卖表
-    protected String productSaleTableName;
-    protected TableMetadata productSaleTableMetadata;
+    protected String saleTable;
+    protected String saleTableName;
 
     // 产品售卖汇总表
-    protected String productSaleSummaryTableName;
-    protected TableMetadata productSaleSummaryTableMetadata;
+    protected String saleSummaryTable;
+    protected String saleSummaryTableName;
 
     @Before
     public void setup() {
         this.streamSettings = EnvironmentSettings.inStreamingMode();
 
-        // redis table
-        List<TableColumnMetadata> productMessageTableColumns = Lists.newArrayList(
-                TableColumnMetadata.builder().name("id").type("BIGINT").build(),
-                TableColumnMetadata.builder().name("name").type("STRING").build(),
-                TableColumnMetadata.builder().name("address").type("STRING").build()
-        );
-        Map<String, String> productMessageRedisTableProperties = Maps.newHashMap();
-        productMessageRedisTableProperties.put("connector", "redis");
-        productMessageRedisTableProperties.put("redis-address", "redis://127.0.0.1:6379");
-        productMessageRedisTableProperties.put("redis-key-prefix", "CN");
-        productMessageRedisTableProperties.put("redis-write-batch-size", "1");
-        this.productMessageRedisTableName = "product";
-        this.productMessageRedisTableMetadata = TableMetadata.builder()
-                .name(this.productMessageRedisTableName)
-                .columns(productMessageTableColumns)
-                .primaryKeys("id")
-                .properties(productMessageRedisTableProperties)
-                .build();
+        this.productMsgTable = "CREATE TABLE product_info ( \n" +
+                               "  id BIGINT, \n" +
+                               "  name STRING, \n" +
+                               "  address STRING, \n" +
+                               "  PRIMARY KEY id NOT ENFORCED \n" +
+                               ") WITH ( \n" +
+                               "  'connector' = 'datagen', \n" +
+                               "  'number-of-rows' = '10', \n" +
+                               "  'rows-per-second' = '2', \n" +
+                               "  'fields.id.min' = '1', \n" +
+                               "  'fields.id.max' = '10'\n" +
+                               ")";
+        this.productMsgTableName = "product_info";
 
-        Map<String, String> productTableProperties = Maps.newHashMap();
-        productTableProperties.put("connector", "datagen");
-        productTableProperties.put("number-of-rows", "10");
-        productTableProperties.put("rows-per-second", "2");
-        productTableProperties.put("fields.id.min", "1");
-        productTableProperties.put("fields.id.max", "10");
+        this.productRedisTable = "CREATE TABLE product_dim_info ( \n" +
+                                 "  id BIGINT, \n" +
+                                 "  name STRING, \n" +
+                                 "  address STRING, \n" +
+                                 "  PRIMARY KEY id NOT ENFORCED \n" +
+                                 ") WITH ( \n" +
+                                 "   'connector' = 'redis',  \n" +
+                                 "   'redis-address' = 'redis://127.0.0.1:6379', \n" +
+                                 "   'redis-key-prefix' = 'product', \n" +
+                                 "   'redis-write-batch-size' = '1' \n" +
+                                 ")";
+        this.productRedisTableName = "product_dim_info";
 
-        this.productMessageSourceTableName = "product_message";
-        this.productMessageSourceTableMetadata = TableMetadata.builder()
-                .name(this.productMessageSourceTableName)
-                .columns(productMessageTableColumns)
-                .primaryKeys("id")
-                .properties(productTableProperties)
-                .build();
+        this.saleTable = "CREATE TABLE sale ( \n" +
+                         "  id BIGINT, \n" +
+                         "  order_id STRING, \n" +
+                         "  sales DOUBLE, \n" +
+                         "  sale_time AS PROCTIME(), \n" +
+                         "  PRIMARY KEY order_id NOT ENFORCED \n" +
+                         ") WITH ( \n" +
+                         "  'connector' = 'datagen', \n" +
+                         "  'number-of-rows' = '10', \n" +
+                         "  'rows-per-second' = '2', \n" +
+                         "  'fields.id.min' = '1', \n" +
+                         "  'fields.id.max' = '10'\n" +
+                         ")";
+        this.saleTableName = "sale";
 
-        // productSale table
-        List<TableColumnMetadata> productSaleTableColumns = Lists.newArrayList(
-                TableColumnMetadata.builder().name("id").type("BIGINT").build(),
-                TableColumnMetadata.builder().name("oid").type("STRING").build(),
-                TableColumnMetadata.builder().name("sales").type("INT").build(),
-                TableColumnMetadata.builder().name("sale_time").type("AS PROCTIME()").nullable(true).build()
-        );
-        productTableProperties.put("rows-per-second", "2");
-        this.productSaleTableName = "product_sales";
-        this.productSaleTableMetadata = TableMetadata.builder()
-                .name(this.productSaleTableName)
-                .columns(productSaleTableColumns)
-                .primaryKeys("oid")
-                .properties(productTableProperties)
-                .build();
-
-        // product sale summary table
-        List<TableColumnMetadata> productSaleSummaryTableColumns = Lists.newArrayList(
-                TableColumnMetadata.builder().name("id").type("BIGINT").build(),
-                TableColumnMetadata.builder().name("sales").type("INT").build(),
-                TableColumnMetadata.builder().name("window_start").type("TIMESTAMP_LTZ").build(),
-                TableColumnMetadata.builder().name("window_end").type("TIMESTAMP_LTZ").build()
-        );
-        Map<String, String> productSaleSummaryTableProperties = Maps.newHashMap();
-        productSaleSummaryTableProperties.put("connector", "redis");
-        productSaleSummaryTableProperties.put("redis-address", "redis://127.0.0.1:6379");
-        productSaleSummaryTableProperties.put("redis-key-prefix", "PS");
-        productSaleSummaryTableProperties.put("redis-write-batch-size", "1");
-        this.productSaleSummaryTableName = "product_sale_summary";
-        this.productSaleSummaryTableMetadata = TableMetadata.builder()
-                .name(this.productSaleSummaryTableName)
-                .columns(productSaleSummaryTableColumns)
-                .primaryKeys("id, window_start, window_end")
-                .properties(productSaleSummaryTableProperties)
-                .build();
+        this.saleSummaryTable = "CREATE TABLE sale_summary ( \n" +
+                                "   id BIGINT, \n" +
+                                "   sales DOUBLE, \n" +
+                                "   window_start TIMESTAMP_LTZ, \n" +
+                                "   window_end TIMESTAMP_LTZ, \n" +
+                                "   PRIMARY KEY id, window_start, window_end NOT ENFORCED \n" +
+                                ") WITH ( \n" +
+                                "   'connector' = 'redis', \n" +
+                                "   'redis-address' = 'redis://127.0.0.1:6379', \n" +
+                                "   'redis-key-prefix' = 'PS', \n" +
+                                "   'redis-write-batch-size' = '1'" +
+                                ")";
+        this.saleSummaryTableName = "sale_summary";
     }
 
 }
