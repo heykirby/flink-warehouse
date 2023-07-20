@@ -5,14 +5,13 @@ import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.metadata.RelColumnOrigin;
 import org.apache.calcite.rel.metadata.RelMetadataQuery;
-import org.apache.flink.table.catalog.ContextResolvedTable;
-import org.apache.flink.table.catalog.ObjectIdentifier;
-import org.apache.flink.table.catalog.ResolvedSchema;
+import org.apache.flink.table.api.TableEnvironment;
+import org.apache.flink.table.catalog.*;
 import org.apache.flink.table.operations.CreateTableASOperation;
 import org.apache.flink.table.operations.ModifyOperation;
 import org.apache.flink.table.operations.SinkModifyOperation;
 import org.apache.flink.table.planner.operations.PlannerQueryOperation;
-import org.apache.flink.table.planner.plan.schema.TableSourceTable;
+import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +27,7 @@ public enum ModifyOperationAnalyzer {
         }
 
         @Override
-        public WarehouseLineage analyze(String jobName, ModifyOperation modifyOperation) {
+        public WarehouseLineage analyze(String jobName, TableEnvironment tableEnv, ModifyOperation modifyOperation) {
             CreateTableASOperation createTableASOperation = (CreateTableASOperation) modifyOperation;
             return null;
         }
@@ -43,7 +42,7 @@ public enum ModifyOperationAnalyzer {
         }
 
         @Override
-        public WarehouseLineage analyze(String jobName, ModifyOperation modifyOperation) {
+        public WarehouseLineage analyze(String jobName, TableEnvironment tableEnv, ModifyOperation modifyOperation) {
             WarehouseLineage lineage = new WarehouseLineage(jobName);
             // INSERT INTO :
             //                   translate
@@ -68,11 +67,18 @@ public enum ModifyOperationAnalyzer {
                 }
                 for (RelColumnOrigin origin : sourceColumns) {
                     RelOptTable table = origin.getOriginTable();
-                    TableSourceTable tst = table.unwrap(TableSourceTable.class);
-                    ContextResolvedTable crt = tst.contextResolvedTable();
-                    String sourceTableName = crt.getIdentifier().asSummaryString();
-                    Map<String, String> sourceTableOptions = crt.getTable().getOptions();
-                    sourceTableFullNames.put(sourceTableName, sourceTableOptions);
+                    ObjectIdentifier tableIdentifier = from(table.getQualifiedName().toArray(new String[0]));
+                    tableEnv.getCatalog(tableIdentifier.getCatalogName())
+                            .ifPresent(catalog -> {
+                                try {
+                                    ObjectPath path = new ObjectPath(tableIdentifier.getDatabaseName(), tableIdentifier.getObjectName());
+                                    CatalogBaseTable catalogTable = catalog.getTable(path);
+                                    sourceTableFullNames.put(tableIdentifier.asSummaryString(), catalogTable.getOptions());
+                                } catch (Exception e) {
+                                    LOG.error("cant find table from catalog, name: {}", objectIdentifier.asSummaryString());
+                                }
+
+                            });
                     // column lineage
                     int ordinal = origin.getOriginColumnOrdinal();
                     String sourceColumnName = table.getRowType().getFieldNames().get(ordinal);
@@ -93,11 +99,16 @@ public enum ModifyOperationAnalyzer {
 
     public abstract boolean accept(ModifyOperation modifyOperation);
 
-    public abstract WarehouseLineage analyze(String jobName, ModifyOperation modifyOperation);
+    public abstract WarehouseLineage analyze(String jobName, TableEnvironment tableEnv, ModifyOperation modifyOperation);
 
     private static final Logger LOG = LoggerFactory.getLogger(ModifyOperationAnalyzer.class);
 
-    public static List<WarehouseLineage> analyze(String jobName, List<ModifyOperation> modifyOperations) {
+    private static ObjectIdentifier from(String[] names) {
+        Preconditions.checkArgument(names.length == 3);
+        return ObjectIdentifier.of(names[0], names[1], names[2]);
+    }
+
+    public static List<WarehouseLineage> analyze(String jobName, TableEnvironment tableEnv, List<ModifyOperation> modifyOperations) {
         if (modifyOperations == null || modifyOperations.isEmpty()) {
             return Collections.emptyList();
         }
@@ -109,7 +120,7 @@ public enum ModifyOperationAnalyzer {
             for (ModifyOperationAnalyzer analyzer : analyzers) {
                 accepted = analyzer.accept(modifyOperation);
                 if (accepted) {
-                    lineages.add(analyzer.analyze(jobName, modifyOperation));
+                    lineages.add(analyzer.analyze(jobName, tableEnv, modifyOperation));
                 }
             }
             if (!accepted) {

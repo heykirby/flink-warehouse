@@ -1,10 +1,10 @@
 package com.sdu.streaming.warehouse;
 
 import com.sdu.streaming.warehouse.dto.WarehouseJob;
+import com.sdu.streaming.warehouse.entry.WarehouseLineage;
 import com.sdu.streaming.warehouse.utils.Base64Utils;
 import com.sdu.streaming.warehouse.utils.JsonUtils;
 import com.sdu.streaming.warehouse.utils.ModifyOperationAnalyzer;
-import com.sdu.streaming.warehouse.entry.WarehouseLineage;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.PipelineOptions;
@@ -97,16 +97,16 @@ public class WarehouseJobBootstrap {
     private static StatementSet executeJobCalculateLogic(TableEnvironment tableEnv, WarehouseJob warehouseJob) throws Exception {
         StatementSet statement = tableEnv.createStatementSet();
         warehouseJob.getCalculates().forEach(statement::addInsertSql);
-        buildJobLineage(statement, warehouseJob);
+        buildJobLineage(tableEnv, statement, warehouseJob);
         return statement;
     }
 
-    private static void buildJobLineage(StatementSet statement, WarehouseJob warehouseJob) throws Exception {
+    private static void buildJobLineage(TableEnvironment tableEnv, StatementSet statement, WarehouseJob warehouseJob) throws Exception {
         Preconditions.checkArgument(statement instanceof StatementSetImpl);
         StatementSetImpl<?> statementSet = (StatementSetImpl<?>) statement;
         List<ModifyOperation> operations = statementSet.getOperations();
         // STEP1：解析血缘
-        List<WarehouseLineage> lineages = ModifyOperationAnalyzer.analyze(warehouseJob.getName(), operations);
+        List<WarehouseLineage> lineages = ModifyOperationAnalyzer.analyze(warehouseJob.getName(), tableEnv, operations);
         // STEP2：上报血缘
         LOG.info("Task({}) lineage: {}", warehouseJob.getName(), toJson(lineages));
     }
