@@ -30,11 +30,11 @@ public class SqlLineageITTest extends SqlBaseTest {
                             "   b.name as name, \n" +
                             "   a.sale_time as sale_time \n" +
                             "FROM \n" +
-                            "   %s a \n" +
-                            "JOIN \n" +
                             "   %s b \n" +
+                            "JOIN \n" +
+                            "   %s a \n" +
                             "ON \n" +
-                            " a.id = b.id", productSaleTableName, productInfoTableName);
+                            " a.id = b.id", productInfoTableName, productSaleTableName);
         WarehouseJob warehouseJob = new WarehouseJob();
         warehouseJob.setStreaming(true);
         warehouseJob.setMaterials(Arrays.asList(productInfoTable, productSaleTable, productSinkTable));

@@ -32,7 +32,7 @@ public abstract class SqlBaseTest {
                                 "  id BIGINT, \n" +
                                 "  order_id STRING, \n" +
                                 "  sales DOUBLE, \n" +
-                                "  sale_time AS PROCTIME(), \n" +
+                                "  sale_time TIMESTAMP_LTZ, \n" +
                                 "  PRIMARY KEY (order_id) NOT ENFORCED \n" +
                                 ") WITH ( \n" +
                                 "  'connector' = 'datagen', \n" +
@@ -41,7 +41,7 @@ public abstract class SqlBaseTest {
                                 "  'fields.id.min' = '1', \n" +
                                 "  'fields.id.max' = '10'\n" +
                                 ")";
-        this.productSaleTableName = "product_info";
+        this.productSaleTableName = "product_sale";
     }
 
     protected String[] ofJobArgs(WarehouseJob job) throws Exception {
