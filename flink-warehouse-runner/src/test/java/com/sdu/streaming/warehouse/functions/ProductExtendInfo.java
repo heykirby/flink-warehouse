@@ -1,0 +1,30 @@
+package com.sdu.streaming.warehouse.functions;
+
+import org.apache.flink.table.annotation.DataTypeHint;
+import org.apache.flink.table.annotation.FunctionHint;
+import org.apache.flink.table.functions.TableFunction;
+import org.apache.flink.types.Row;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@FunctionHint(output = @DataTypeHint("ROW< id INT,  company STRING, company_address STRING >"))
+public class ProductExtendInfo extends TableFunction<Row> {
+
+    private static final Map<Integer, Row> productCompaniesInfo;
+
+    static {
+        productCompaniesInfo = new HashMap<>();
+        productCompaniesInfo.put(1, Row.of(1, "山东济南娃哈哈有限公司", "山东济南"));
+        productCompaniesInfo.put(2, Row.of(2, "江苏连云港娃哈哈有限公司", "江苏连云港"));
+        productCompaniesInfo.put(3, Row.of(3, "河南郑州娃哈哈有限公司", "河南郑州"));
+    }
+
+    public void eval(int productId) {
+        Row row = productCompaniesInfo.get(productId);
+        if (row != null) {
+            collect(row);
+        }
+    }
+
+}

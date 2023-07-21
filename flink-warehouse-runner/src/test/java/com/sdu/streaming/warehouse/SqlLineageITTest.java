@@ -1,15 +1,20 @@
 package com.sdu.streaming.warehouse;
 
 import com.sdu.streaming.warehouse.dto.WarehouseJob;
+import org.apache.flink.table.annotation.DataTypeHint;
+import org.apache.flink.table.annotation.FunctionHint;
+import org.apache.flink.table.functions.TableFunction;
+import org.apache.flink.types.Row;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.lang.String.format;
 
 public class SqlLineageITTest extends SqlBaseTest {
-
 
     @Test
     public void testSqlJoin() throws Exception {
@@ -40,6 +45,41 @@ public class SqlLineageITTest extends SqlBaseTest {
         warehouseJob.setMaterials(Arrays.asList(productInfoTable, productSaleTable, productSinkTable));
         warehouseJob.setCalculates(Collections.singletonList(sql));
         WarehouseJobBootstrap.run(ofJobArgs(warehouseJob));
+    }
+
+    @Test
+    public void testSqlTableFunction() throws Exception {
+        String productSinkTable = "CREATE TABLE product_info_summary ( \n" +
+                                  " id BIGINT, \n" +
+                                  " name STRING, \n" +
+                                  " address STRING, \n" +
+                                  " company STRING, \n" +
+                                  " company_address STRING \n" +
+                                  ") WITH ( \n" +
+                                  " 'connector' = 'print' \n" +
+                                  ")";
+        String productExtendInfoTable = "CREATE FUNCTION IF NOT EXISTS product_extend_info \n" +
+                                        "AS 'com.sdu.streaming.warehouse.functions.ProductExtendInfo'";
+        String sql = format("INSERT INTO product_info_summary \n" +
+                "   SELECT \n" +
+                "       a.id as id, \n" +
+                "       a.name as name, \n" +
+                "       a.address as address, \n" +
+                "       b.company as company, \n" +
+                "       b.company_address as company_address \n" +
+                "   FROM \n" +
+                "       %s a, \n" +
+                "   LATERAL TABLE(product_extend_info(a.id)) b", productInfoTableName);
+        WarehouseJob warehouseJob = new WarehouseJob();
+        warehouseJob.setStreaming(true);
+        warehouseJob.setMaterials(Arrays.asList(productExtendInfoTable, productInfoTable, productSinkTable));
+        warehouseJob.setCalculates(Collections.singletonList(sql));
+        WarehouseJobBootstrap.run(ofJobArgs(warehouseJob));
+    }
+
+    @Test
+    public void testSqlLookupJoin() throws Exception {
+
     }
 
 }
