@@ -35,16 +35,16 @@ public class WarehouseJobBootstrap {
 
     private static void checkWarehouseJob(WarehouseJob task) {
         if (task == null) {
-            throw new IllegalArgumentException("undefine task");
+            throw new IllegalArgumentException("undefined task");
         }
         if (task.getOptions() == null) {
             task.setOptions(Collections.emptyList());
         }
         if (task.getMaterials() == null || task.getMaterials().isEmpty()) {
-            throw new IllegalArgumentException("undefine job materials");
+            throw new IllegalArgumentException("undefined job materials");
         }
         if (task.getCalculates() == null || task.getCalculates().isEmpty()) {
-            throw new IllegalArgumentException("undefine job execute logic");
+            throw new IllegalArgumentException("undefined job execute logic");
         }
         if (task.getName() == null || task.getName().isEmpty()) {
             task.setName(DEFAULT_JOB_NAME);

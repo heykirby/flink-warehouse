@@ -1,10 +1,9 @@
 package com.sdu.streaming.warehouse.dto;
 
-import lombok.Data;
-
 import java.io.Serializable;
-import java.util.LinkedList;
 import java.util.List;
+
+import lombok.Data;
 
 @Data
 public class WarehouseJob implements Serializable {

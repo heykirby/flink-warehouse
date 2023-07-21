@@ -202,15 +202,14 @@ public class RelMdColumnOrigins
     // support UDTF
     public @Nullable Set<RelColumnOrigin> getColumnOrigins(Correlate rel,
                                                            RelMetadataQuery mq, int iOutputColumn) {
-//        int nLeftColumns = rel.getLeft().getRowType().getFieldList().size();
-//        Set<RelColumnOrigin> set;
-//        if (nLeftColumns > iOutputColumn) {
-//            set = mq.getColumnOrigins(rel.getLeft(), iOutputColumn);
-//        } else {
-//            TableFunctionScan scan = (TableFunctionScan) rel.getRight();
-//
-//        }
-        return null;
+        int nLeftColumns = rel.getLeft().getRowType().getFieldList().size();
+        Set<RelColumnOrigin> set;
+        if (nLeftColumns > iOutputColumn) {
+            set = mq.getColumnOrigins(rel.getLeft(), iOutputColumn);
+        } else {
+            set = mq.getColumnOrigins(rel.getRight(), iOutputColumn - nLeftColumns);
+        }
+        return set;
     }
 
     // Catch-all rule when none of the others apply.
