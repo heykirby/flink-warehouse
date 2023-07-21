@@ -3,6 +3,7 @@ package com.sdu.streaming.warehouse.dto;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.LinkedList;
 import java.util.List;
 
 @Data
