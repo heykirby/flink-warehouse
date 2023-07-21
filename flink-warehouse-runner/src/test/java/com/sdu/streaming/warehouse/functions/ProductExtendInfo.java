@@ -27,4 +27,11 @@ public class ProductExtendInfo extends TableFunction<Row> {
         }
     }
 
+    public void eval(long productId, String name) {
+        Row row = productCompaniesInfo.get(productId);
+        if (row != null) {
+            collect(row);
+        }
+    }
+
 }

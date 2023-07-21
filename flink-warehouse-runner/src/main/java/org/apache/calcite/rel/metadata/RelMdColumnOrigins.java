@@ -1,17 +1,37 @@
 package org.apache.calcite.rel.metadata;
 
-import org.apache.calcite.plan.RelOptTable;
-import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.SingleRel;
-import org.apache.calcite.rel.core.*;
-import org.apache.calcite.rex.*;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.checkerframework.checker.nullness.qual.PolyNull;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.calcite.plan.RelOptTable;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.SingleRel;
+import org.apache.calcite.rel.core.Aggregate;
+import org.apache.calcite.rel.core.AggregateCall;
+import org.apache.calcite.rel.core.Calc;
+import org.apache.calcite.rel.core.Correlate;
+import org.apache.calcite.rel.core.Exchange;
+import org.apache.calcite.rel.core.Filter;
+import org.apache.calcite.rel.core.Join;
+import org.apache.calcite.rel.core.Project;
+import org.apache.calcite.rel.core.SetOp;
+import org.apache.calcite.rel.core.Snapshot;
+import org.apache.calcite.rel.core.Sort;
+import org.apache.calcite.rel.core.TableFunctionScan;
+import org.apache.calcite.rel.core.TableModify;
+import org.apache.calcite.rel.type.RelDataTypeField;
+import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.rex.RexFieldAccess;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexLocalRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexShuttle;
+import org.apache.calcite.rex.RexVisitor;
+import org.apache.calcite.rex.RexVisitorImpl;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.PolyNull;
 
 /**
  * RelMdColumnOrigins supplies a default implementation of
@@ -207,7 +227,22 @@ public class RelMdColumnOrigins
         if (nLeftColumns > iOutputColumn) {
             set = mq.getColumnOrigins(rel.getLeft(), iOutputColumn);
         } else {
-            set = mq.getColumnOrigins(rel.getRight(), iOutputColumn - nLeftColumns);
+            set = new HashSet<>();
+            // todo: only table function translate to 'Correlate' ?
+            TableFunctionScan functionScan = (TableFunctionScan) rel.getRight();
+            // 左表关联字段是当前字段的血缘字段
+            RexCall call = (RexCall) functionScan.getCall();
+            for (RexNode op : call.getOperands()) {
+                String fieldName = ((RexFieldAccess) op).getField().getName();
+                int leftIndex = 0;
+                for (RelDataTypeField field : rel.getLeft().getRowType().getFieldList()) {
+                    if (field.getName().equalsIgnoreCase(fieldName)) {
+                        set.addAll(mq.getColumnOrigins(rel.getLeft(), leftIndex));
+                        break;
+                    }
+                    leftIndex += 1;
+                }
+            }
         }
         return set;
     }

@@ -57,14 +57,14 @@ public class SqlLineageITTest extends SqlBaseTest {
                                         "AS 'com.sdu.streaming.warehouse.functions.ProductExtendInfo'";
         String sql = format("INSERT INTO product_info_summary \n" +
                 "   SELECT \n" +
-                "       b.company as company, \n" +
                 "       a.id as id, \n" +
                 "       a.name as name, \n" +
                 "       a.address as address, \n" +
+                "       b.company as company, \n" +
                 "       b.company_address as company_address \n" +
                 "   FROM \n" +
                 "       %s a, \n" +
-                "   LATERAL TABLE(product_extend_info(a.id)) b", productInfoTableName);
+                "   LATERAL TABLE(product_extend_info(a.id, a.name)) b", productInfoTableName);
         WarehouseJob warehouseJob = new WarehouseJob();
         warehouseJob.setStreaming(true);
         warehouseJob.setMaterials(Arrays.asList(productExtendInfoTable, productInfoTable, productSinkTable));

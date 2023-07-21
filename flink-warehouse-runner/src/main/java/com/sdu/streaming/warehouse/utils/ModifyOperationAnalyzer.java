@@ -1,12 +1,25 @@
 package com.sdu.streaming.warehouse.utils;
 
-import com.sdu.streaming.warehouse.entry.WarehouseLineage;
+import static java.lang.String.format;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.metadata.RelColumnOrigin;
 import org.apache.calcite.rel.metadata.RelMetadataQuery;
 import org.apache.flink.table.api.TableEnvironment;
-import org.apache.flink.table.catalog.*;
+import org.apache.flink.table.catalog.CatalogBaseTable;
+import org.apache.flink.table.catalog.ContextResolvedTable;
+import org.apache.flink.table.catalog.ObjectIdentifier;
+import org.apache.flink.table.catalog.ObjectPath;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.operations.CreateTableASOperation;
 import org.apache.flink.table.operations.ModifyOperation;
 import org.apache.flink.table.operations.SinkModifyOperation;
@@ -15,7 +28,7 @@ import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import com.sdu.streaming.warehouse.entry.WarehouseLineage;
 
 public enum ModifyOperationAnalyzer {
 
@@ -57,7 +70,8 @@ public enum ModifyOperationAnalyzer {
             RelNode queryRelNode = plannerQueryOperation.getCalciteTree();
 
             // build lineage
-            Map<String, Map<String, String>> sourceTableFullNames = new HashMap<>();
+            Set<String> sourceTableNames = new HashSet<>();
+            Map<String, Map<String, String>> sourceTableOptions = new HashMap<>();
             for (int i = 0; i < resolvedSchema.getColumnCount(); ++i) {
                 String targetColumn = resolvedSchema.getColumnNames().get(i);
                 RelMetadataQuery metadataQuery = queryRelNode.getCluster().getMetadataQuery();
@@ -73,7 +87,8 @@ public enum ModifyOperationAnalyzer {
                                 try {
                                     ObjectPath path = new ObjectPath(tableIdentifier.getDatabaseName(), tableIdentifier.getObjectName());
                                     CatalogBaseTable catalogTable = catalog.getTable(path);
-                                    sourceTableFullNames.put(tableIdentifier.asSummaryString(), catalogTable.getOptions());
+                                    sourceTableOptions.put(tableIdentifier.asSummaryString(), catalogTable.getOptions());
+                                    sourceTableNames.add(tableIdentifier.asSummaryString());
                                 } catch (Exception e) {
                                     LOG.error("cant find table from catalog, name: {}", objectIdentifier.asSummaryString());
                                 }
@@ -82,14 +97,17 @@ public enum ModifyOperationAnalyzer {
                     // column lineage
                     int ordinal = origin.getOriginColumnOrdinal();
                     String sourceColumnName = table.getRowType().getFieldNames().get(ordinal);
-                    lineage.addTableColumnLineage(sourceColumnName, targetColumn);
+                    lineage.addTableColumnLineage(
+                            format("%s.%s", tableIdentifier.asSummaryString(), sourceColumnName),
+                            format("%s.%s", objectIdentifier.asSummaryString(), targetColumn));
                 }
             }
             // table lineage
             lineage.buildTableLineage(
-                    sourceTableFullNames,
                     objectIdentifier.asSummaryString(),
-                    resolvedTable.getTable().getOptions());
+                    resolvedTable.getTable().getOptions(),
+                    sourceTableNames,
+                    sourceTableOptions);
 
             return lineage;
         }

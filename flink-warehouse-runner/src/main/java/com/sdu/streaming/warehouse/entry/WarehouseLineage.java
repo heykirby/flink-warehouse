@@ -10,11 +10,12 @@ public class WarehouseLineage implements Serializable {
 
     private final String jobName;
 
-    // key: sourceFullTableName, value: sourceTableOptions
-    private Map<String, Map<String, String>> sourceFullTableNames;
+    private Set<String> sourceTableNames;
+    // key: fullTableName, value: sourceTableOptions
+    private Map<String, Map<String, String>> sourceTableOptions;
 
-    private String targetFullTableName;
-    private Map<String, String> targetTableOptions;
+    private String sinkTableName;
+    private Map<String, String> sinkTableOptions;
 
     // key: targetTableColumn, value: sourceTableColumn
     private Map<String, Set<String>> columnLineages;
@@ -23,16 +24,20 @@ public class WarehouseLineage implements Serializable {
         this.jobName = jobName;
     }
 
-    public void buildTableLineage(Map<String, Map<String, String>> sourceFullTableNames,
-                                  String targetFullTableName,
-                                  Map<String, String> targetTableOptions) {
-        checkArgument(sourceFullTableNames != null && !sourceFullTableNames.isEmpty());
-        checkArgument(targetFullTableName != null && !targetFullTableName.isEmpty());
-        checkArgument(targetTableOptions != null);
+    public void buildTableLineage(
+            String sinkTableName,
+            Map<String, String> sinkTableOptions,
+            Set<String> sourceTableNames,
+            Map<String, Map<String, String>> sourceTableOptions) {
+        checkArgument(sinkTableName != null && !sinkTableName.isEmpty());
+        checkArgument(sinkTableOptions != null && sinkTableOptions.size() > 0);
+        checkArgument(sourceTableNames != null && sourceTableNames.size() > 0);
+        checkArgument(sourceTableOptions != null && !sourceTableOptions.isEmpty());
 
-        this.sourceFullTableNames = sourceFullTableNames;
-        this.targetFullTableName = targetFullTableName;
-        this.targetTableOptions = targetTableOptions;
+        this.sourceTableNames = sourceTableNames;
+        this.sourceTableOptions = sourceTableOptions;
+        this.sinkTableName = sinkTableName;
+        this.sinkTableOptions = sinkTableOptions;
     }
 
     public void addTableColumnLineage(String sourceColumnName, String targetColumnName) {
@@ -50,16 +55,20 @@ public class WarehouseLineage implements Serializable {
         return jobName;
     }
 
-    public Map<String, Map<String, String>> getSourceFullTableNames() {
-        return sourceFullTableNames;
+    public Set<String> getSourceTableNames() {
+        return sourceTableNames;
     }
 
-    public String getTargetFullTableName() {
-        return targetFullTableName;
+    public Map<String, Map<String, String>> getSourceTableOptions() {
+        return sourceTableOptions;
     }
 
-    public Map<String, String> getTargetTableOptions() {
-        return targetTableOptions;
+    public String getSinkTableName() {
+        return sinkTableName;
+    }
+
+    public Map<String, String> getSinkTableOptions() {
+        return sinkTableOptions;
     }
 
     public Map<String, Set<String>> getColumnLineages() {
