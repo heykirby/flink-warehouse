@@ -43,6 +43,35 @@ public class SqlLineageITTest extends SqlBaseTest {
     }
 
     @Test
+    public void testSqlScalarFunction() throws Exception {
+        String productSinkTable = "CREATE TABLE product_info_summary ( \n" +
+                                  " id BIGINT, \n" +
+                                  " order_id STRING, \n" +
+                                  " sales DOUBLE, \n" +
+                                  " currency_name STRING, \n" +
+                                  " sale_time TIMESTAMP_LTZ \n" +
+                                  ") WITH ( \n" +
+                                  " 'connector' = 'print' \n" +
+                                  ")";
+        String currencyExchangeFunction = "CREATE FUNCTION IF NOT EXISTS currency_exchange \n" +
+                                          "AS 'com.sdu.streaming.warehouse.functions.CurrencyExchange'";
+        String sql = format("INSERT INTO product_info_summary \n" +
+                            "   SELECT \n" +
+                            "       a.id as id, \n" +
+                            "       a.order_id as order_id, \n" +
+                            "       currency_exchange(a.sales, 'US') as sales, \n" +
+                            "       'US' as currency_name, \n" +
+                            "       a.sale_time as sale_time \n" +
+                            "   FROM \n" +
+                            "       %s a", productSaleTableName);
+        WarehouseJob warehouseJob = new WarehouseJob();
+        warehouseJob.setStreaming(true);
+        warehouseJob.setMaterials(Arrays.asList(currencyExchangeFunction, productSaleTable, productSinkTable));
+        warehouseJob.setCalculates(Collections.singletonList(sql));
+        WarehouseJobBootstrap.run(ofJobArgs(warehouseJob));
+    }
+
+    @Test
     public void testSqlTableFunction() throws Exception {
         String productSinkTable = "CREATE TABLE product_info_summary ( \n" +
                                   " id BIGINT, \n" +

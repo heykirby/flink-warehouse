@@ -25,6 +25,7 @@ import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rex.RexCall;
 import org.apache.calcite.rex.RexFieldAccess;
 import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.rex.RexLocalRef;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexShuttle;
@@ -124,6 +125,12 @@ public class RelMdColumnOrigins
             // Direct reference:  no derivation added.
             RexInputRef inputRef = (RexInputRef) rexNode;
             return mq.getColumnOrigins(input, inputRef.getIndex());
+        }
+        // support literal
+        if (rexNode instanceof RexLiteral) {
+            Set<RelColumnOrigin> set = new HashSet<>();
+            set.add(RelEmptyColumnOrigin.EMPTY);
+            return set;
         }
         // Anything else is a derivation, possibly from multiple columns.
         final Set<RelColumnOrigin> set = getMultipleColumns(rexNode, input, mq);
@@ -312,6 +319,7 @@ public class RelMdColumnOrigins
                         }
                         return null;
                     }
+
                 };
         rexNode.accept(visitor);
         return set;

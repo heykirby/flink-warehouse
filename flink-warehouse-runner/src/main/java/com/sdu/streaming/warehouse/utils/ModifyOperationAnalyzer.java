@@ -13,6 +13,7 @@ import java.util.Set;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.metadata.RelColumnOrigin;
+import org.apache.calcite.rel.metadata.RelEmptyColumnOrigin;
 import org.apache.calcite.rel.metadata.RelMetadataQuery;
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.catalog.CatalogBaseTable;
@@ -80,6 +81,13 @@ public enum ModifyOperationAnalyzer {
                     throw new IllegalStateException("cant find source column for target column '" + targetColumn + "'");
                 }
                 for (RelColumnOrigin origin : sourceColumns) {
+                    if (origin instanceof RelEmptyColumnOrigin) {
+                        // implied constant
+                        lineage.addTableColumnLineage(
+                                "literal",
+                                format("%s.%s", objectIdentifier.asSummaryString(), targetColumn));
+                        continue;
+                    }
                     RelOptTable table = origin.getOriginTable();
                     ObjectIdentifier tableIdentifier = from(table.getQualifiedName().toArray(new String[0]));
                     tableEnv.getCatalog(tableIdentifier.getCatalogName())
