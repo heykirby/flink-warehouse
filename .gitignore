@@ -7,8 +7,7 @@
 # idea
 .idea/
 *.iml
-*/target
-*/target/*
+target/
 
 dependency-reduced-pom.xml
 

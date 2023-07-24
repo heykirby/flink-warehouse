@@ -1,8 +1,10 @@
 package com.sdu.streaming.warehouse.source;
 
+import com.sdu.streaming.warehouse.functions.ProductExtendInfo;
 import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
+import org.apache.flink.table.connector.source.lookup.LookupFunctionProvider;
 
 public class ProductExtendInfoLookupTableSource implements LookupTableSource {
 
@@ -14,7 +16,7 @@ public class ProductExtendInfoLookupTableSource implements LookupTableSource {
 
     @Override
     public LookupRuntimeProvider getLookupRuntimeProvider(LookupContext context) {
-        return null;
+        return LookupFunctionProvider.of(new ProductExtendInfo());
     }
 
     @Override
@@ -26,5 +28,4 @@ public class ProductExtendInfoLookupTableSource implements LookupTableSource {
     public String asSummaryString() {
         return "product extend information";
     }
-
 }

@@ -241,7 +241,7 @@ public class RelMdColumnOrigins
                 getColumnOriginFromTableFunction(set, (TableFunctionScan) right, rel.getLeft(), mq);
             } else {
                 // support lookup join
-                set.addAll(mq.getColumnOrigins(rel, iOutputColumn));
+                set.addAll(mq.getColumnOrigins(right, iOutputColumn - nLeftColumns));
             }
 
         }
