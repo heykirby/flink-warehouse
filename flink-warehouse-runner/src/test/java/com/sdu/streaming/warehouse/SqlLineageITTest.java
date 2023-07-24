@@ -103,7 +103,41 @@ public class SqlLineageITTest extends SqlBaseTest {
 
     @Test
     public void testSqlLookupJoin() throws Exception {
-
+        String productSinkTable = "CREATE TABLE product_info_summary ( \n" +
+                                  " id BIGINT, \n" +
+                                  " name STRING, \n" +
+                                  " address STRING, \n" +
+                                  " company STRING, \n" +
+                                  " company_address STRING \n" +
+                                  ") WITH ( \n" +
+                                  " 'connector' = 'print' \n" +
+                                  ")";
+        String productExtendInfoTable = "CREATE TABLE product_extend_info ( \n" +
+                                        "   id BIGINT, \n" +
+                                        "   company STRING, \n" +
+                                        "   company_address STRING, \n" +
+                                        "   PRIMARY KEY (id) NOT ENFORCED \n " +
+                                        ") WITH ( \n" +
+                                        "   'connector' = 'product' \n" +
+                                        ")";
+        String sql = format("INSERT INTO product_info_summary \n" +
+                            "   SELECT \n" +
+                            "       a.id as id, \n" +
+                            "       a.name as name, \n" +
+                            "       a.address as address, \n" +
+                            "       b.company as company, \n" +
+                            "       b.company_address as company_address \n" +
+                            "   FROM \n" +
+                            "       %s a \n" +
+                            "   JOIN \n" +
+                            "       product_extend_info FOR SYSTEM_TIME AS OF a.proc_time AS b \n" +
+                            "   ON \n" +
+                            "       a.id = b.id", productInfoTableName);
+        WarehouseJob warehouseJob = new WarehouseJob();
+        warehouseJob.setStreaming(true);
+        warehouseJob.setMaterials(Arrays.asList(productExtendInfoTable, productInfoTable, productSinkTable));
+        warehouseJob.setCalculates(Collections.singletonList(sql));
+        WarehouseJobBootstrap.run(ofJobArgs(warehouseJob));
     }
 
 }

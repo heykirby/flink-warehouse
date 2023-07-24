@@ -18,6 +18,7 @@ public abstract class SqlBaseTest {
                                 "  id BIGINT, \n" +
                                 "  name STRING, \n" +
                                 "  address STRING, \n" +
+                                "  proc_time AS PROCTIME(), \n" +
                                 "  PRIMARY KEY (id) NOT ENFORCED \n" +
                                 ") WITH ( \n" +
                                 "  'connector' = 'datagen', \n" +
