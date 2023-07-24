@@ -235,23 +235,34 @@ public class RelMdColumnOrigins
             set = mq.getColumnOrigins(rel.getLeft(), iOutputColumn);
         } else {
             set = new HashSet<>();
-            // todo: only table function translate to 'Correlate' ?
-            TableFunctionScan functionScan = (TableFunctionScan) rel.getRight();
-            // 左表关联字段是当前字段的血缘字段
-            RexCall call = (RexCall) functionScan.getCall();
-            for (RexNode op : call.getOperands()) {
-                String fieldName = ((RexFieldAccess) op).getField().getName();
-                int leftIndex = 0;
-                for (RelDataTypeField field : rel.getLeft().getRowType().getFieldList()) {
-                    if (field.getName().equalsIgnoreCase(fieldName)) {
-                        set.addAll(mq.getColumnOrigins(rel.getLeft(), leftIndex));
-                        break;
-                    }
-                    leftIndex += 1;
-                }
+            RelNode right = rel.getRight();
+            if (right instanceof TableFunctionScan) {
+                // support table function
+                getColumnOriginFromTableFunction(set, (TableFunctionScan) right, rel.getLeft(), mq);
+            } else {
+                // support lookup join
+                set.addAll(mq.getColumnOrigins(rel, iOutputColumn));
             }
+
         }
         return set;
+    }
+
+    private static void getColumnOriginFromTableFunction(Set<RelColumnOrigin> set,
+                                                         TableFunctionScan scan, RelNode left, RelMetadataQuery mq) {
+        // 左表关联字段是当前字段的血缘字段
+        RexCall call = (RexCall) scan.getCall();
+        for (RexNode op : call.getOperands()) {
+            String fieldName = ((RexFieldAccess) op).getField().getName();
+            int leftIndex = 0;
+            for (RelDataTypeField field : left.getRowType().getFieldList()) {
+                if (field.getName().equalsIgnoreCase(fieldName)) {
+                    set.addAll(mq.getColumnOrigins(left, leftIndex));
+                    break;
+                }
+                leftIndex += 1;
+            }
+        }
     }
 
     // Catch-all rule when none of the others apply.
