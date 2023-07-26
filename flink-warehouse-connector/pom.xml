@@ -16,6 +16,7 @@
     <modules>
         <module>flink-warehouse-connector-kafka</module>
         <module>flink-warehouse-connector-redis</module>
+        <module>flink-warehouse-connector-all</module>
     </modules>
 
     <dependencies>
